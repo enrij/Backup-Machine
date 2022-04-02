@@ -21,5 +21,14 @@
         <Folder Include="Domain\Interfaces" />
         <Folder Include="Infrastructure\Persistence\Converters" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <Content Include="appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <Content Include="appsettings.Development.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 
 </Project>

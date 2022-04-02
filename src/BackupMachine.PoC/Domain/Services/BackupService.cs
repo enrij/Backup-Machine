@@ -2,16 +2,19 @@
 using BackupMachine.PoC.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BackupMachine.PoC.Domain.Services;
 
 public class BackupService
 {
     private readonly IDbContextFactory<BackupMachineContext> _dbContextFactory;
+    private readonly ILogger<BackupService> _logger;
 
-    public BackupService(IDbContextFactory<BackupMachineContext> dbContextFactory)
+    public BackupService(IDbContextFactory<BackupMachineContext> dbContextFactory, ILogger<BackupService> logger)
     {
         _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     public DirectoryInfo ComputeDestinationInfo(string path)
@@ -22,8 +25,8 @@ public class BackupService
     public async Task<FileCopy> BackupFileAsync(FileInfo source, FileInfo destination, CancellationToken cancellationToken = default)
     {
         File.Copy(source.FullName, destination.FullName, true);
-
-        Console.WriteLine($"Copied file {source.FullName} into {destination.FullName}");
+        
+        _logger.LogDebug("Copied file {Source}", source.FullName);
 
         return await Task.FromResult(new FileCopy
         {
@@ -62,6 +65,8 @@ public class BackupService
             
             folder.Folders.Add(folderCopy);
         }
+        
+        _logger.LogDebug("Copied folder {Source}", source.FullName);
 
         return folder;
     }
