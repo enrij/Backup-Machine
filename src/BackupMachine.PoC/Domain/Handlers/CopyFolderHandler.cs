@@ -38,13 +38,9 @@ public class CopyFolderHandler : AsyncRequestHandler<CopyFolderCommand>
             ZipFile.CreateFromDirectory(request.Destination.FullName, archive.FullName);
 
             _logger.LogDebug("Zip archive created");
-
-            foreach (var file in request.Destination.GetFiles())
-            {
-                file.Delete();
-            }
             
             // Move the archive to proper location
+            // TODO: "Proper location" should be into request.Destination folder/subfolder
             File.Move(archive.FullName, Path.Combine(request.Destination.FullName, $"{archive.Name}.{archive.Extension}"));
         }
 
@@ -55,5 +51,7 @@ public class CopyFolderHandler : AsyncRequestHandler<CopyFolderCommand>
             await _mediatr.Send(new CopyFolderCommand(directory, destination, request.Timestamp), cancellationToken);
             _logger.LogDebug("Copied folder {Folder}", directory.FullName);
         }
+        
+        // TODO: Cleanup
     }
 }
