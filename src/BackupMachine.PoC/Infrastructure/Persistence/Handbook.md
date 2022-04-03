@@ -30,7 +30,7 @@ $migration = Read-Host -Prompt 'New migration name'
 dotnet ef database drop --project .\src\BackupMachine.PoC --force
 dotnet ef migrations remove --project .\src\BackupMachine.PoC
 dotnet ef migrations add $migration --project .\src\BackupMachine.PoC --output-dir Infrastructure\Persistence\Migrations
-dotnet ef database update --project .\src\BackupMachine.PoC~~~~
+dotnet ef database update --project .\src\BackupMachine.PoC
 
 ```
 

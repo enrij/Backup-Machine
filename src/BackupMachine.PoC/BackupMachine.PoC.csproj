@@ -8,20 +8,15 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Domain\Enums" />
-        <Folder Include="Domain\Interfaces" />
-        <Folder Include="Infrastructure\Persistence\Converters" />
-    </ItemGroup>
-    
     <ItemGroup>
         <Content Include="appsettings.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -29,6 +24,10 @@
         <Content Include="appsettings.Development.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Domain\Services" />
     </ItemGroup>
 
 </Project>

@@ -11,15 +11,7 @@ public class BackupMachineContext : DbContext
     {
     }
 
-    public DbSet<FolderCopy> Folders
-    {
-        get { return Set<FolderCopy>(); }
-    }
-
-    public DbSet<Snapshot> Snapshots
-    {
-        get { return Set<Snapshot>(); }
-    }
+    public DbSet<Job> Jobs => Set<Job>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
