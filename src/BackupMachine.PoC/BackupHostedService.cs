@@ -28,7 +28,7 @@ public class BackupHostedService : IHostedService
 
         foreach (var job in context.Jobs)
         {
-            await _mediatr.Send(new StartJobCommand(job), cancellationToken);
+            await _mediatr.Send(new ExecuteJobCommand(job), cancellationToken);
         }
     }
 
