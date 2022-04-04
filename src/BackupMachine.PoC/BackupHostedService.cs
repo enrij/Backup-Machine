@@ -1,6 +1,7 @@
-﻿using BackupMachine.PoC.Domain;
-using BackupMachine.PoC.Domain.Services;
+﻿using BackupMachine.PoC.Domain.Commands;
 using BackupMachine.PoC.Infrastructure;
+
+using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -9,12 +10,13 @@ namespace BackupMachine.PoC;
 
 public class BackupHostedService : IHostedService
 {
-    private readonly BackupService _backupService;
+    private readonly IDbContextFactory<BackupMachineContext> _dbContextFactory;
+    private readonly IMediator _mediatr;
 
-    public BackupHostedService(IDbContextFactory<BackupMachineContext> dbContextFactory, BackupService backupService)
+    public BackupHostedService(IDbContextFactory<BackupMachineContext> dbContextFactory, IMediator mediatr)
     {
-        _backupService = backupService;
-
+        _dbContextFactory = dbContextFactory;
+        _mediatr = mediatr;
         var context = dbContextFactory.CreateDbContext();
 
         context.Database.Migrate();
@@ -22,7 +24,12 @@ public class BackupHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _backupService.BackupAsync(cancellationToken);
+        await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        foreach (var job in context.Jobs)
+        {
+            await _mediatr.Send(new ExecuteJobCommand(job), cancellationToken);
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
