@@ -35,14 +35,19 @@ public class CreateBackupFileEntityHandler : IRequestHandler<CreateBackupFileEnt
 
     public async Task<BackupFile> Handle(CreateBackupFileEntityCommand request, CancellationToken cancellationToken)
     {
+        var folder = await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Folder.Destination.FullName, request.Backup.Id), cancellationToken);
 
+        if (folder is null)
+        {
+            throw new InvalidOperationException("Folder not found");
+        }
+        
         var file = new BackupFile
         {
             Backup = request.Backup,
             Name = request.File.Name,
             Extension = request.File.Extension,
-            // TODO: BackupFolder should be nullable???
-            BackupFolder = (await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Folder.Destination.FullName, request.Backup.Id), cancellationToken))!,
+            BackupFolder = folder,
         };
 
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
