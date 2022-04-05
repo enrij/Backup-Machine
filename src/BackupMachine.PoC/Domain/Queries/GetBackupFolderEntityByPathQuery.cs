@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BackupMachine.PoC.Domain.Queries;
 
-public class GetBackupFolderEntityByPathQuery : IRequest<BackupFolder?>
+public class GetBackupFolderEntityByPathQuery : IRequest<BackupFolder>
 {
     public GetBackupFolderEntityByPathQuery(string path, Guid backupId)
     {
@@ -19,7 +19,7 @@ public class GetBackupFolderEntityByPathQuery : IRequest<BackupFolder?>
     public string Path { get; set; }
 }
 
-public class GetBackupFolderEntityByPathHandler : IRequestHandler<GetBackupFolderEntityByPathQuery, BackupFolder?>
+public class GetBackupFolderEntityByPathHandler : IRequestHandler<GetBackupFolderEntityByPathQuery, BackupFolder>
 {
     private readonly IDbContextFactory<BackupMachineContext> _dbContextFactory;
 
@@ -28,14 +28,14 @@ public class GetBackupFolderEntityByPathHandler : IRequestHandler<GetBackupFolde
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<BackupFolder?> Handle(GetBackupFolderEntityByPathQuery request, CancellationToken cancellationToken)
+    public async Task<BackupFolder> Handle(GetBackupFolderEntityByPathQuery request, CancellationToken cancellationToken)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         return context.Folders
                       .Where(folder => folder.BackupId == request.BackupId)
                       .AsEnumerable()
-                      .FirstOrDefault(
+                      .First(
                           folder => folder.Destination.FullName == request.Path);
     }
 }

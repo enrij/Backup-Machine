@@ -35,14 +35,12 @@ public class CreateBackupFileEntityHandler : IRequestHandler<CreateBackupFileEnt
 
     public async Task<BackupFile> Handle(CreateBackupFileEntityCommand request, CancellationToken cancellationToken)
     {
-
         var file = new BackupFile
         {
             Backup = request.Backup,
             Name = request.File.Name,
             Extension = request.File.Extension,
-            // TODO: BackupFolder should be nullable???
-            BackupFolder = (await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Folder.Destination.FullName, request.Backup.Id), cancellationToken))!,
+            BackupFolder = await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Folder.Destination.FullName, request.Backup.Id), cancellationToken),
         };
 
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
