@@ -27,12 +27,11 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
 
     public async Task<BackupFolder> Handle(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken)
     {
-        
-        var relativePath = request.Folder.FullName.Replace($"{Utilities.ComposeTemporaryFolderPath(request.Backup)}\\", string.Empty);
-        
+        string relativePath = request.Folder.FullName.Replace($"{Utilities.ComposeTemporaryFolderPath(request.Backup)}\\", string.Empty);
+
         var source = new DirectoryInfo(Path.Combine(request.Backup.Job.Source, relativePath));
         var destination = new DirectoryInfo(Path.Combine(request.Backup.Job.Destination, relativePath));
-        
+
         var destinationEntity = await _mediatr.Send(new CreateBackupFolderEntityCommand(request.Backup, source, destination), cancellationToken);
 
         foreach (var file in request.Folder.GetFiles().TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
@@ -46,7 +45,7 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
             var subfolderEntity = await _mediatr.Send(new CreateDatabaseDataFromFolderCommand(request.Backup, directory), cancellationToken);
             destinationEntity.Subfolders.Add(subfolderEntity);
         }
-        
+
         if (destinationEntity.Files.Count > 0 || destinationEntity.Subfolders.Count > 0)
         {
             destinationEntity = await _mediatr.Send(new UpdateBackupFolderCommand(destinationEntity), cancellationToken);

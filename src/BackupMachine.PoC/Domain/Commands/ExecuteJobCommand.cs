@@ -50,7 +50,7 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
 
         // Stage 2
         await _mediatr.Send(new BackupFolderCommand(source, tempFolder, backup), cancellationToken);
-        
+
         // Stage 3
         await _mediatr.Send(new CreateDatabaseDataFromFolderCommand(backup, tempFolder), cancellationToken);
 
@@ -59,7 +59,7 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
 
         // Stage 5
         await _mediatr.Send(new MoveArchiveCommand(tempFolder, destination, backup), cancellationToken);
-        
+
         // Stage 6
         await _mediatr.Send(new CleanFolderCommand(tempFolder), cancellationToken);
         await _mediatr.Send(new CleanFolderCommand(tempFolder.Parent!), cancellationToken);

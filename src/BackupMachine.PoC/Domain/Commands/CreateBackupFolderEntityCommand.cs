@@ -38,12 +38,11 @@ public class CreateBackupFolderEntityHandler : IRequestHandler<CreateBackupFolde
         var folder = new BackupFolder
         {
             Backup = request.Backup,
-            Source = request.Source,
-            Destination = request.Destination,
-            ParentFolder = 
+            RelativePath = Utilities.GetPathRelativeToJobDestination(request.Destination.FullName, request.Backup.Job),
+            ParentFolder =
                 request.Destination.Parent is null
-                ? null
-                : await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Destination.Parent.FullName, request.Backup.Id), cancellationToken)
+                    ? null
+                    : await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Destination.Parent.FullName, request.Backup), cancellationToken)
         };
 
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);

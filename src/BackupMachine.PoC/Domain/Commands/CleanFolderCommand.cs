@@ -16,8 +16,8 @@ public class CleanFolderCommand : IRequest
 
 public class CleanFolderHandler : AsyncRequestHandler<CleanFolderCommand>
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<CleanFolderHandler> _logger;
+    private readonly IMediator _mediator;
 
     public CleanFolderHandler(IMediator mediator, ILogger<CleanFolderHandler> logger)
     {
@@ -28,7 +28,7 @@ public class CleanFolderHandler : AsyncRequestHandler<CleanFolderCommand>
     protected override async Task Handle(CleanFolderCommand request, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Cleaning folder [{Path}]", request.Folder.FullName);
-        
+
         if (request.Folder.GetFiles().Length > 0)
         {
             foreach (var file in request.Folder.GetFiles())
@@ -48,7 +48,7 @@ public class CleanFolderHandler : AsyncRequestHandler<CleanFolderCommand>
         {
             await _mediator.Send(new CleanFolderCommand(directory), cancellationToken);
         }
-        
+
         request.Folder.Delete();
         _logger.LogDebug("Deleted folder [{Path}]", request.Folder.FullName);
     }

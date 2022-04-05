@@ -22,8 +22,8 @@ public class MoveArchiveCommand : IRequest
 
 public class MoveArchiveHandler : AsyncRequestHandler<MoveArchiveCommand>
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<MoveArchiveHandler> _logger;
+    private readonly IMediator _mediator;
 
     public MoveArchiveHandler(IMediator mediator, ILogger<MoveArchiveHandler> logger)
     {
@@ -39,7 +39,7 @@ public class MoveArchiveHandler : AsyncRequestHandler<MoveArchiveCommand>
 
             _logger.LogDebug("Created destination folder [{Path}]", request.Destination.FullName);
         }
-        
+
         var archiveFile = request.Source
                                  .GetFiles()
                                  .FirstOrDefault(file => file.Name == Utilities.ComposeBackupArchiveName(request.Backup));
@@ -54,7 +54,7 @@ public class MoveArchiveHandler : AsyncRequestHandler<MoveArchiveCommand>
         {
             await _mediator.Send(
                 new MoveArchiveCommand(
-                    directory, 
+                    directory,
                     new DirectoryInfo(Path.Combine(request.Destination.FullName, directory.Name)),
                     request.Backup),
                 cancellationToken);

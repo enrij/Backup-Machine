@@ -5,8 +5,7 @@ public class BackupFolder
     public Guid Id { get; set; }
     public Guid BackupId { get; set; }
     public Guid? ParentFolderId { get; set; }
-    public DirectoryInfo Source { get; set; } = default!;
-    public DirectoryInfo Destination { get; set; } = default!;
+    public string RelativePath { get; set; } = string.Empty;
 
     public Backup Backup { get; set; } = default!;
     public BackupFolder? ParentFolder { get; set; }

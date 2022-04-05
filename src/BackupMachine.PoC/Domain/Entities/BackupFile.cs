@@ -10,6 +10,4 @@ public class BackupFile
 
     public Backup Backup { get; set; } = default!;
     public BackupFolder BackupFolder { get; set; } = default!;
-
-    public string FileNameAndExtension => $"{Name}.{Extension}";
 }
