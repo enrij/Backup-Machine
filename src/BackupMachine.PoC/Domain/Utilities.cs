@@ -8,4 +8,9 @@ public static class Utilities
     {
         return $"BackupMachine-{backup.Timestamp:yyyy MM dd HH mm ss}.zip";
     }
+
+    public static string ComposeTemporaryFolderPath(Backup backup)
+    {
+        return Path.Combine(Path.GetTempPath(), "BackupMachine", backup.Id.ToString());
+    }
 }

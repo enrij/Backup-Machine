@@ -35,7 +35,6 @@ public class CreateBackupFolderEntityHandler : IRequestHandler<CreateBackupFolde
 
     public async Task<BackupFolder> Handle(CreateBackupFolderEntityCommand request, CancellationToken cancellationToken)
     {
-
         var folder = new BackupFolder
         {
             Backup = request.Backup,
