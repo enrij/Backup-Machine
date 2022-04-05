@@ -32,6 +32,7 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
         var timestamp = DateTime.Now;
 
         /*
+         Stage 0: Create backup on DB
          Stage 1: Create temporary directory structure and copy files in it
          Stage 2: Create archives for each folder starting from the deepest ad bubbling up to the root
          Stage 3: Move the archives to the target directory
@@ -46,14 +47,16 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
         var source = new DirectoryInfo(request.Job.Source);
         var destination = new DirectoryInfo(request.Job.Destination);
 
+        var backup = await _mediatr.Send(new CreateBackupCommand(request.Job), cancellationToken);
+
         // Stage 1
-        await _mediatr.Send(new CopyFolderCommand(source, tempFolder, timestamp), cancellationToken);
+        await _mediatr.Send(new CopyFolderCommand(source, tempFolder, backup.Timestamp), cancellationToken);
 
         // Stage 2
-        await _mediatr.Send(new ZipFolderCommand(tempFolder, timestamp), cancellationToken);
+        await _mediatr.Send(new ZipFolderCommand(tempFolder, backup.Timestamp), cancellationToken);
 
         // Stage 3
-        await _mediatr.Send(new MoveArchiveCommand(tempFolder, destination, timestamp), cancellationToken);
+        await _mediatr.Send(new MoveArchiveCommand(tempFolder, destination, backup.Timestamp), cancellationToken);
         
         // Stage 4
         await _mediatr.Send(new CleanFolderCommand(tempFolder), cancellationToken);

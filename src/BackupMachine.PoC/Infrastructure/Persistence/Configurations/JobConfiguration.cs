@@ -15,7 +15,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
 
         builder.HasData(new List<Job>
         {
-            new() { Id = Guid.NewGuid(), Name = "Test", Source = @"C:\Temp\Sources\SmallSource", Destination = @"C:\Temp\Backups\SmallSource" }
+            new() { Id = Guid.Parse("e005279a-2b23-4a3c-b798-27cb443daf9e"), Name = "Test", Source = @"C:\Temp\Sources\SmallSource", Destination = @"C:\Temp\Backups\SmallSource" }
         });
     }
 }
