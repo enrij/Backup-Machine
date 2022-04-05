@@ -18,7 +18,7 @@ public class CreateBackupFileEntityCommand : IRequest<BackupFile>
     }
 
     public Backup Backup { get; init; }
-    public BackupFolder Folder { get; set; }
+    public BackupFolder Folder { get; init; }
     public FileInfo File { get; init; }
 }
 

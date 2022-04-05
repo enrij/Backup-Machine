@@ -14,7 +14,7 @@ public class UpdateBackupFolderCommand : IRequest<BackupFolder>
         Entity = entity;
     }
 
-    public BackupFolder Entity { get; set; }
+    public BackupFolder Entity { get; init; }
 }
 
 public class UpdateBackupFolderHandler : IRequestHandler<UpdateBackupFolderCommand, BackupFolder>

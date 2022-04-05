@@ -17,9 +17,9 @@ public class CreateBackupFolderEntityCommand : IRequest<BackupFolder>
         Destination = destination;
     }
 
-    public Backup Backup { get; set; }
-    public DirectoryInfo Source { get; set; }
-    public DirectoryInfo Destination { get; set; }
+    public Backup Backup { get; init; }
+    public DirectoryInfo Source { get; init; }
+    public DirectoryInfo Destination { get; init; }
 }
 
 public class CreateBackupFolderEntityHandler : IRequestHandler<CreateBackupFolderEntityCommand, BackupFolder>

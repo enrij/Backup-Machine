@@ -11,7 +11,7 @@ public class CleanFolderCommand : IRequest
         Folder = folder;
     }
 
-    public DirectoryInfo Folder { get; set; }
+    public DirectoryInfo Folder { get; init; }
 }
 
 public class CleanFolderHandler : AsyncRequestHandler<CleanFolderCommand>

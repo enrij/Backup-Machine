@@ -14,7 +14,7 @@ public class CreateBackupEntityCommand : IRequest<Backup>
         Job = job;
     }
 
-    public Job Job { get; set; }
+    public Job Job { get; init; }
 }
 
 public class CreateBackupEntityHandler : IRequestHandler<CreateBackupEntityCommand, Backup>
