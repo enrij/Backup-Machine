@@ -29,8 +29,6 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
 
     protected override async Task Handle(ExecuteJobCommand request, CancellationToken cancellationToken)
     {
-        var timestamp = DateTime.Now;
-
         /*
          Stage 0: Create backup on DB
          Stage 1: Create temporary directory structure and copy files in it
@@ -47,16 +45,16 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
         var source = new DirectoryInfo(request.Job.Source);
         var destination = new DirectoryInfo(request.Job.Destination);
 
-        var backup = await _mediatr.Send(new CreateBackupCommand(request.Job), cancellationToken);
+        var backup = await _mediatr.Send(new CreateBackupEntityCommand(request.Job), cancellationToken);
 
         // Stage 1
-        await _mediatr.Send(new CopyFolderCommand(source, tempFolder, backup.Timestamp), cancellationToken);
+        await _mediatr.Send(new BackupFolderCommand(source, tempFolder, backup), cancellationToken);
 
         // Stage 2
-        await _mediatr.Send(new ZipFolderCommand(tempFolder, backup.Timestamp), cancellationToken);
+        await _mediatr.Send(new ZipFolderCommand(tempFolder, backup), cancellationToken);
 
         // Stage 3
-        await _mediatr.Send(new MoveArchiveCommand(tempFolder, destination, backup.Timestamp), cancellationToken);
+        await _mediatr.Send(new MoveArchiveCommand(tempFolder, destination, backup), cancellationToken);
         
         // Stage 4
         await _mediatr.Send(new CleanFolderCommand(tempFolder), cancellationToken);

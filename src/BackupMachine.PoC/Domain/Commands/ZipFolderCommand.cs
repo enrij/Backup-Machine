@@ -1,5 +1,7 @@
 ﻿using System.IO.Compression;
 
+using BackupMachine.PoC.Domain.Entities;
+
 using MediatR;
 
 using Microsoft.Extensions.Logging;
@@ -8,13 +10,13 @@ namespace BackupMachine.PoC.Domain.Commands;
 
 public class ZipFolderCommand : IRequest
 {
-    public ZipFolderCommand(DirectoryInfo folder, DateTime timeStamp)
+    public ZipFolderCommand(DirectoryInfo folder, Backup backup)
     {
         Folder = folder;
-        TimeStamp = timeStamp;
+        Backup = backup;
     }
 
-    public DateTime TimeStamp { get; init; }
+    public Backup Backup { get; init; }
 
     public DirectoryInfo Folder { get; init; }
 }
@@ -38,12 +40,12 @@ public class ZipFolderHandler : AsyncRequestHandler<ZipFolderCommand>
          * the same file name) the archive created for current folder will block the creation of the archive for child folders (since they have will be
          * temporary stored in their parent folder)
          */
-        foreach (var directory in request.Folder.GetDirectories().TakeWhile(_ => !cancellationToken.IsCancellationRequested))
+        foreach (var directory in request.Folder.GetDirectories().TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
-            await _mediator.Send(new ZipFolderCommand(directory, request.TimeStamp), cancellationToken);
+            await _mediator.Send(new ZipFolderCommand(directory, request.Backup), cancellationToken);
         }
 
-        var archiveFile = new FileInfo(Path.Combine(request.Folder.Parent!.FullName, $"BackupMachine-{request.TimeStamp:yyyy MM dd HH mm ss}.zip"));
+        var archiveFile = new FileInfo(Path.Combine(request.Folder.Parent!.FullName, Utilities.ComposeBackupArchiveName(request.Backup)));
         var filesToZip = request.Folder.GetFiles().Where(file => file.Name != archiveFile.Name && file.Attributes != FileAttributes.Hidden).ToList();
 
         if (filesToZip.Count > 0)
@@ -52,7 +54,7 @@ public class ZipFolderHandler : AsyncRequestHandler<ZipFolderCommand>
 
             var archive = new ZipArchive(archiveFile.Create(), ZipArchiveMode.Create);
 
-            foreach (var file in filesToZip.TakeWhile(_ => !cancellationToken.IsCancellationRequested))
+            foreach (var file in filesToZip.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
             {
                 _logger.LogDebug("Adding file {File} to archive", file.FullName);
                 archive.CreateEntryFromFile(file.FullName, file.Name);

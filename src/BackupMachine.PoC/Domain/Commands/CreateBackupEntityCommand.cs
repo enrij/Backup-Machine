@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BackupMachine.PoC.Domain.Commands;
 
-public class CreateBackupCommand : IRequest<Backup>
+public class CreateBackupEntityCommand : IRequest<Backup>
 {
-    public CreateBackupCommand(Job job)
+    public CreateBackupEntityCommand(Job job)
     {
         Job = job;
     }
@@ -17,16 +17,16 @@ public class CreateBackupCommand : IRequest<Backup>
     public Job Job { get; set; }
 }
 
-public class CreateBackupHandler : IRequestHandler<CreateBackupCommand, Backup>
+public class CreateBackupEntityHandler : IRequestHandler<CreateBackupEntityCommand, Backup>
 {
     private readonly IDbContextFactory<BackupMachineContext> _dbContextFactory;
 
-    public CreateBackupHandler(IDbContextFactory<BackupMachineContext> dbContextFactory)
+    public CreateBackupEntityHandler(IDbContextFactory<BackupMachineContext> dbContextFactory)
     {
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Backup> Handle(CreateBackupCommand request, CancellationToken cancellationToken)
+    public async Task<Backup> Handle(CreateBackupEntityCommand request, CancellationToken cancellationToken)
     {
         var backup = new Backup
         {
