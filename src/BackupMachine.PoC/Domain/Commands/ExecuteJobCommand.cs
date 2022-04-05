@@ -29,33 +29,38 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
 
     protected override async Task Handle(ExecuteJobCommand request, CancellationToken cancellationToken)
     {
-        var timestamp = DateTime.Now;
-
         /*
-         Stage 1: Create temporary directory structure and copy files in it
-         Stage 2: Create archives for each folder starting from the deepest ad bubbling up to the root
-         Stage 3: Move the archives to the target directory
-         Stage 4: Cleanup
+         Stage 1: Create backup on DB
+         Stage 2: Create temporary directory structure and copy files in it
+         Stage 3: Create database entries
+         Stage 4: Create archives for each folder starting from the deepest ad bubbling up to the root
+         Stage 5: Move the archives to the target directory
+         Stage 6: Cleanup
          */
 
         _logger.LogDebug("Job [{Name}] started", request.Job.Name);
-
-        var tempFolder = await _mediatr.Send(new CreateTempFolderCommand(), cancellationToken);
-
-        tempFolder = new DirectoryInfo(Path.Combine(tempFolder.FullName, new DirectoryInfo(request.Job.Destination).Name));
         var source = new DirectoryInfo(request.Job.Source);
         var destination = new DirectoryInfo(request.Job.Destination);
 
         // Stage 1
-        await _mediatr.Send(new CopyFolderCommand(source, tempFolder, timestamp), cancellationToken);
+        var backup = await _mediatr.Send(new CreateBackupEntityCommand(request.Job), cancellationToken);
+
+        var tempFolder = await _mediatr.Send(new CreateTempFolderCommand(backup), cancellationToken);
+        tempFolder = new DirectoryInfo(Path.Combine(tempFolder.FullName, new DirectoryInfo(request.Job.Destination).Name));
 
         // Stage 2
-        await _mediatr.Send(new ZipFolderCommand(tempFolder, timestamp), cancellationToken);
-
-        // Stage 3
-        await _mediatr.Send(new MoveArchiveCommand(tempFolder, destination, timestamp), cancellationToken);
+        await _mediatr.Send(new BackupFolderCommand(source, tempFolder, backup), cancellationToken);
         
+        // Stage 3
+        await _mediatr.Send(new CreateDatabaseDataFromFolderCommand(backup, tempFolder), cancellationToken);
+
         // Stage 4
+        await _mediatr.Send(new ZipFolderCommand(tempFolder, backup), cancellationToken);
+
+        // Stage 5
+        await _mediatr.Send(new MoveArchiveCommand(tempFolder, destination, backup), cancellationToken);
+        
+        // Stage 6
         await _mediatr.Send(new CleanFolderCommand(tempFolder), cancellationToken);
         await _mediatr.Send(new CleanFolderCommand(tempFolder.Parent!), cancellationToken);
 

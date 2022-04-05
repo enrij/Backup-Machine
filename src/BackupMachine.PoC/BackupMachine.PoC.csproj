@@ -30,4 +30,8 @@
         <Folder Include="Domain\Services" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="BackupMachine.db" />
+    </ItemGroup>
+
 </Project>

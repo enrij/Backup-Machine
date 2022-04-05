@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using BackupMachine.PoC.Domain.Entities;
+
+using MediatR;
 
 using Microsoft.Extensions.Logging;
 
@@ -6,16 +8,16 @@ namespace BackupMachine.PoC.Domain.Commands;
 
 public class MoveArchiveCommand : IRequest
 {
-    public MoveArchiveCommand(DirectoryInfo source, DirectoryInfo destination, DateTime timeStamp)
+    public MoveArchiveCommand(DirectoryInfo source, DirectoryInfo destination, Backup backup)
     {
         Destination = destination;
-        TimeStamp = timeStamp;
+        Backup = backup;
         Source = source;
     }
 
     public DirectoryInfo Source { get; init; }
     public DirectoryInfo Destination { get; init; }
-    public DateTime TimeStamp { get; init; }
+    public Backup Backup { get; init; }
 }
 
 public class MoveArchiveHandler : AsyncRequestHandler<MoveArchiveCommand>
@@ -40,7 +42,7 @@ public class MoveArchiveHandler : AsyncRequestHandler<MoveArchiveCommand>
         
         var archiveFile = request.Source
                                  .GetFiles()
-                                 .FirstOrDefault(file => file.Name == $"BackupMachine-{request.TimeStamp:yyyy MM dd HH mm ss}.zip");
+                                 .FirstOrDefault(file => file.Name == Utilities.ComposeBackupArchiveName(request.Backup));
 
         if (archiveFile is not null)
         {
@@ -54,7 +56,7 @@ public class MoveArchiveHandler : AsyncRequestHandler<MoveArchiveCommand>
                 new MoveArchiveCommand(
                     directory, 
                     new DirectoryInfo(Path.Combine(request.Destination.FullName, directory.Name)),
-                    request.TimeStamp),
+                    request.Backup),
                 cancellationToken);
         }
     }

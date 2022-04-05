@@ -1,4 +1,5 @@
 ﻿using BackupMachine.PoC.Domain.Entities;
+using BackupMachine.PoC.Infrastructure.Persistence.Converters;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,9 @@ public class BackupMachineContext : DbContext
     }
 
     public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<Backup> Backups => Set<Backup>();
+    public DbSet<BackupFolder> Folders => Set<BackupFolder>();
+    public DbSet<BackupFile> Files => Set<BackupFile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,5 +24,7 @@ public class BackupMachineContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
+        configurationBuilder.Properties<DirectoryInfo>()
+                            .HaveConversion<DirectoryInfoConverter>();
     }
 }
