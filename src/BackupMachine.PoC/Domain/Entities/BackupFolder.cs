@@ -7,8 +7,8 @@ public class BackupFolder
     public Guid? ParentFolderId { get; set; }
     public string RelativePath { get; set; } = string.Empty;
 
-    public Backup Backup { get; set; } = default!;
-    public BackupFolder? ParentFolder { get; set; }
-    public List<BackupFile> Files { get; set; } = new();
-    public List<BackupFolder> Subfolders { get; set; } = new();
+    public virtual Backup Backup { get; set; } = default!;
+    public virtual BackupFolder? ParentFolder { get; set; }
+    public virtual List<BackupFile> Files { get; set; } = new();
+    public virtual List<BackupFolder> Subfolders { get; set; } = new();
 }

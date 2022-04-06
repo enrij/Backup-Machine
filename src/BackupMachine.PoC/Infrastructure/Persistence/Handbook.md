@@ -3,6 +3,7 @@
 ```shell
 $migration = Read-Host -Prompt 'New migration name'
 dotnet ef migrations add $migration --project .\src\BackupMachine.PoC --output-dir Infrastructure\Persistence\Migrations
+dotnet ef database update --project .\src\BackupMachine.PoC
 ```
 
 # Remove last migration

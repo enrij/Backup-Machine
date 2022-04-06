@@ -7,5 +7,5 @@ public class Job
     public string Source { get; set; } = string.Empty;
     public string Destination { get; set; } = string.Empty;
 
-    public List<Backup> Backups { get; set; } = new();
+    public virtual List<Backup> Backups { get; set; } = new();
 }

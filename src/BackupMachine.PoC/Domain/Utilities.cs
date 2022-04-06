@@ -9,43 +9,23 @@ public static class Utilities
         return $"BackupMachine-{backup.Timestamp:yyyy MM dd HH mm ss}.zip";
     }
 
-    public static string ComposeTemporaryFolderPath(Backup backup)
+    public static string GetBackupDestinationRootFolderPath(Backup backup)
     {
-        return Path.Combine(Path.GetTempPath(), "BackupMachine", backup.Id.ToString());
+        return Path.Combine(backup.Job.Destination, $"{backup.Timestamp:yyyy MM dd HH mm ss}");
     }
 
-    public static string GetPathRelativeToJobSource(string path, Job job)
+    public static string GetPathRelativeToJobSource(DirectoryInfo folder, Job job)
     {
-        return path.Replace(job.Source, string.Empty).TrimStart('\\');
+        return folder.FullName.Replace(job.Source, string.Empty).TrimStart('\\');
     }
 
-    public static string GetPathRelativeToJobDestination(string path, Job job)
+    public static string GetBackupFolderDestinationPath(BackupFolder folder)
     {
-        return path.Replace(job.Destination, string.Empty).TrimStart('\\');
+        return Path.Combine(GetBackupDestinationRootFolderPath(folder.Backup), folder.RelativePath);
     }
 
-    public static string GetPathRelativeToTemporaryFolder(string path, Backup backup)
+    public static string GetBackupFileDestinationPath(BackupFile file)
     {
-        return path.Replace(ComposeTemporaryFolderPath(backup), string.Empty).TrimStart('\\');
-    }
-
-    public static string GetPathRelativeToFolder(string path, DirectoryInfo folder)
-    {
-        return path.Replace(folder.FullName, string.Empty).TrimStart('\\');
-    }
-
-    public static string GetFullPathRelativeToJobSource(string path, Job job)
-    {
-        return Path.Combine(job.Source, path);
-    }
-
-    public static string GetFullPathRelativeToJobDestination(string path, Job job)
-    {
-        return Path.Combine(job.Destination, path);
-    }
-
-    public static string GetFullPathRelativeToTemporaryFolder(string path, Backup backup)
-    {
-        return Path.Combine(ComposeTemporaryFolderPath(backup), path);
+        return Path.Combine(GetBackupDestinationRootFolderPath(file.BackupFolder.Backup), file.BackupFolder.RelativePath, file.Name);
     }
 }

@@ -10,16 +10,14 @@ namespace BackupMachine.PoC.Domain.Commands;
 
 public class CreateBackupFolderEntityCommand : IRequest<BackupFolder>
 {
-    public CreateBackupFolderEntityCommand(Backup backup, DirectoryInfo source, DirectoryInfo destination)
+    public CreateBackupFolderEntityCommand(Backup backup, DirectoryInfo sourceFolder)
     {
         Backup = backup;
-        Source = source;
-        Destination = destination;
+        SourceFolder = sourceFolder;
     }
 
     public Backup Backup { get; init; }
-    public DirectoryInfo Source { get; init; }
-    public DirectoryInfo Destination { get; init; }
+    public DirectoryInfo SourceFolder { get; init; }
 }
 
 public class CreateBackupFolderEntityHandler : IRequestHandler<CreateBackupFolderEntityCommand, BackupFolder>
@@ -38,11 +36,11 @@ public class CreateBackupFolderEntityHandler : IRequestHandler<CreateBackupFolde
         var folder = new BackupFolder
         {
             Backup = request.Backup,
-            RelativePath = Utilities.GetPathRelativeToJobDestination(request.Destination.FullName, request.Backup.Job),
+            RelativePath = Utilities.GetPathRelativeToJobSource(request.SourceFolder, request.Backup.Job),
             ParentFolder =
-                request.Destination.Parent is null
+                request.SourceFolder.Parent is null
                     ? null
-                    : await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Destination.Parent.FullName, request.Backup), cancellationToken)
+                    : await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.SourceFolder.Parent.FullName, request.Backup), cancellationToken)
         };
 
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);

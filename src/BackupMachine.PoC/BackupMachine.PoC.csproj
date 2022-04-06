@@ -8,13 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1"/>
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,13 +27,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Domain\Services"/>
+        <Folder Include="Domain\Services" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="BackupMachine.db"/>
-        <None Remove="BackupMachine.db-shm"/>
-        <None Remove="BackupMachine.db-wal"/>
+        <None Remove="BackupMachine.db" />
+        <None Remove="BackupMachine.db-shm" />
+        <None Remove="BackupMachine.db-wal" />
     </ItemGroup>
 
 </Project>
