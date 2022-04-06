@@ -35,21 +35,34 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
          */
 
         _logger.LogDebug("Job [{Name}] started", request.Job.Name);
-
         // Stage 1
         var backup = await _mediatr.Send(new CreateBackupEntityCommand(request.Job), cancellationToken);
-        var source = new DirectoryInfo(request.Job.Source);
-        var destination = Directory.CreateDirectory(Path.Combine(request.Job.Destination, Utilities.GetBackupDestinationRootFolderPath(backup)));
 
-        // Stage 1
-        await _mediatr.Send(new CreateDatabaseDataFromFolderCommand(backup, source), cancellationToken);
+        try
+        {
+            var source = new DirectoryInfo(request.Job.Source);
 
-        // Stage 2
-        await _mediatr.Send(new CreateDestinationFolderStructureCommand(backup), cancellationToken);
+            // Stage 1
+            await _mediatr.Send(new CreateDatabaseDataFromFolderCommand(backup, source), cancellationToken);
 
-        // Stage 3
-        await _mediatr.Send(new BackupFilesCommand(backup), cancellationToken);
+            // Stage 2
+            await _mediatr.Send(new CreateDestinationFolderStructureCommand(backup), cancellationToken);
 
-        _logger.LogDebug("Job [{Name}] completed", request.Job.Name);
+            // Stage 3
+            await _mediatr.Send(new BackupFilesCommand(backup), cancellationToken);
+
+            _logger.LogDebug("Job [{Name}] completed", request.Job.Name);
+        }
+        catch (Exception e)
+        {
+            _logger.LogCritical(e, "Job [{Name}] failed. Cleaning invalid data", request.Job.Name);
+            
+            await _mediatr.Send(new DeleteBackupEntityCommand(backup), cancellationToken);
+
+            if (Directory.Exists(Utilities.GetBackupDestinationRootFolderPath(backup)))
+            {
+                await _mediatr.Send(new DeleteFolderCommand(Utilities.GetBackupDestinationRootFolderPath(backup)), cancellationToken);
+            }
+        }
     }
 }

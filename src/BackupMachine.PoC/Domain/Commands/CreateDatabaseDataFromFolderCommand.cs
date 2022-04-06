@@ -6,6 +6,7 @@ using BackupMachine.PoC.Infrastructure;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BackupMachine.PoC.Domain.Commands;
 
@@ -25,43 +26,28 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
 {
     private readonly IDbContextFactory<BackupMachineContext> _dbContextFactory;
     private readonly IMediator _mediatr;
+    private readonly ILogger<CreateDatabaseDataFromFolderHandler> _logger;
 
-    public CreateDatabaseDataFromFolderHandler(IMediator mediatr, IDbContextFactory<BackupMachineContext> dbContextFactory)
+    public CreateDatabaseDataFromFolderHandler(IMediator mediatr, IDbContextFactory<BackupMachineContext> dbContextFactory, ILogger<CreateDatabaseDataFromFolderHandler> logger)
     {
         _mediatr = mediatr;
         _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     public async Task<BackupFolder> Handle(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Analyzing folder [{Folder}]", request.Source.FullName);
+
         var destinationEntity = await _mediatr.Send(new CreateBackupFolderEntityCommand(request.Backup, request.Source), cancellationToken);
 
-        await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var previousBackupFiles = await GetPreviousBackupFileEntities(request, cancellationToken);
 
-        var previousBackupFiles = context.Folders
-                                         .Where(folder => request.Backup.PreviousBackupId != null && folder.BackupId == request.Backup.PreviousBackupId)
-                                         .Include(folder => folder.Files)
-                                         .AsEnumerable()
-                                         .Where(folder => folder.RelativePath == Utilities.GetPathRelativeToJobSource(request.Source, request.Backup.Job))
-                                         .SelectMany(folder => folder.Files.Select(file => file.Name))
-                                         .Distinct()
-                                         .ToList();
-
-        var filesToBackup = new List<FileToBackup>();
+        List<FileToBackup> filesToBackup;
 
         if (previousBackupFiles.Count > 0)
         {
-            // New or updated files
-            filesToBackup = filesToBackup.Concat(CompareActualFilesWithBackupAndReturnNewOrUpdatedFiles(
-                                              request.Source.GetFiles().ToList(),
-                                              previousBackupFiles))
-                                         .ToList();
-
-            // Deleted files
-            filesToBackup = filesToBackup.Concat(CompareActualFilesWithBackupAndReturnDeletedFiles(
-                                              request.Source.GetFiles().ToList(),
-                                              previousBackupFiles.Select(file => Path.Combine(request.Source.FullName, file)).ToList()))
-                                         .ToList();
+            filesToBackup = CompareActualFilesToBackup(request.Source, previousBackupFiles);
         }
         else
         {
@@ -70,6 +56,18 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
                                    .Select(file => new FileToBackup(file, FileStatus.New))
                                    .TakeWhile(_ => cancellationToken.IsCancellationRequested == false)
                                    .ToList();
+        }
+
+        if (filesToBackup.Any(file => file.Status != FileStatus.Unchanged))
+        {
+            _logger.LogInformation("Since previous backup: {New} new files, {Updated} updated files and {Deleted} deleted files ",
+                filesToBackup.Count(file => file.Status == FileStatus.New),
+                filesToBackup.Count(file => file.Status == FileStatus.Updated),
+                filesToBackup.Count(file => file.Status == FileStatus.Deleted));
+        }
+        else
+        {
+            _logger.LogInformation("No changes since previous backup");
         }
 
         foreach (var fileToBackup in filesToBackup.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
@@ -92,32 +90,117 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
         return destinationEntity;
     }
 
-    private List<FileToBackup> CompareActualFilesWithBackupAndReturnNewOrUpdatedFiles(List<FileInfo> actualFiles, List<string> backupFiles)
+    private async Task<List<BackupFile>> GetPreviousBackupFileEntities(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken)
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var previousBackupFiles = context.Files
+                                         .Where(file => 
+                                              request.Backup.PreviousBackupId != null && 
+                                              file.BackupId == request.Backup.PreviousBackupId)
+                                         .Include(file => file.BackupFolder)
+                                         .Include(file => file.Backup)
+                                         .ThenInclude(backup => backup.Job)
+                                         .AsEnumerable()
+                                         .Where(file => file.BackupFolder.RelativePath == Utilities.GetPathRelativeToJobSource(request.Source, request.Backup.Job))
+                                         .Select(file => file)
+                                         .Distinct()
+                                         .ToList();
+        return previousBackupFiles;
+    }
+
+    private List<FileToBackup> CompareActualFilesToBackup(DirectoryInfo source, List<BackupFile> previousBackupFiles)
+    {
+        var filesToBackup = new List<FileToBackup>();
+        // New files
+        filesToBackup = filesToBackup.Concat(CompareActualFolderFilesWithBackupAndReturnNewFiles(
+                                          source.GetFiles().ToList(),
+                                          previousBackupFiles))
+                                     .ToList();
+        // Updated files
+        filesToBackup = filesToBackup.Concat(CompareActualFolderFilesWithBackupAndReturnUpdatedFiles(
+                                          source.GetFiles().ToList(),
+                                          previousBackupFiles))
+                                     .ToList();
+
+        // Deleted files
+        filesToBackup = filesToBackup.Concat(CompareActualFolderFilesWithBackupAndReturnDeletedFiles(
+                                          source.GetFiles().ToList(),
+                                          previousBackupFiles))
+                                     .ToList();
+        // Unchanged files
+        filesToBackup = filesToBackup.Concat(CompareActualFolderFilesWithBackupAndReturnUnchangedFiles(
+                                          source.GetFiles().ToList(),
+                                          previousBackupFiles))
+                                     .ToList();
+        return filesToBackup;
+    }
+
+    private List<FileToBackup> CompareActualFolderFilesWithBackupAndReturnNewFiles(List<FileInfo> actualFiles, List<BackupFile> backupFiles)
     {
         return actualFiles.GroupJoin(
                                backupFiles,
                                outer => outer.Name,
-                               inner => inner,
+                               inner => inner.Name,
                                (outer, inner) => new { File = outer, AlreadyBackedup = inner.Any() }
                            )
+                          .Where(group => group.AlreadyBackedup == false)
                           .Select(group => new FileToBackup(
                                group.File,
-                               group.AlreadyBackedup ? FileStatus.Updated : FileStatus.New)
+                               FileStatus.New)
                            )
                           .ToList();
     }
 
-    private List<FileToBackup> CompareActualFilesWithBackupAndReturnDeletedFiles(List<FileInfo> actualFiles, List<string> backupFiles)
+    private List<FileToBackup> CompareActualFolderFilesWithBackupAndReturnUpdatedFiles(List<FileInfo> actualFiles, List<BackupFile> backupFiles)
+    {
+        return actualFiles.Join(
+                               backupFiles,
+                               outer => outer.Name,
+                               inner => inner.Name,
+                               (outer, inner) => new { File = outer, BackupFile = inner }
+                           )
+                          .Where(group =>
+                               group.File.Length != group.BackupFile.Length ||
+                               group.File.LastWriteTimeUtc != group.BackupFile.Modified&&
+                               group.File.CreationTimeUtc != group.BackupFile.Created)
+                          .Select(group => new FileToBackup(
+                               group.File,
+                               FileStatus.Updated)
+                           )
+                          .ToList();
+    }
+
+    private List<FileToBackup> CompareActualFolderFilesWithBackupAndReturnUnchangedFiles(List<FileInfo> actualFiles, List<BackupFile> backupFiles)
+    {
+        return actualFiles.Join(
+                               backupFiles,
+                               outer => outer.Name,
+                               inner => inner.Name,
+                               (outer, inner) => new { File = outer, BackupFile = inner }
+                           )
+                          .Where(group =>
+                               group.File.Length == group.BackupFile.Length &&
+                               group.File.LastWriteTimeUtc == group.BackupFile.Modified &&
+                               group.File.CreationTimeUtc == group.BackupFile.Created)
+                          .Select(group => new FileToBackup(
+                               group.File,
+                               FileStatus.Unchanged)
+                           )
+                          .ToList();
+    }
+
+    private List<FileToBackup> CompareActualFolderFilesWithBackupAndReturnDeletedFiles(List<FileInfo> actualFiles, List<BackupFile> backupFiles)
     {
         return backupFiles.GroupJoin(
                                actualFiles,
-                               outer => outer,
+                               outer => outer.Name,
                                inner => inner.Name,
                                (outer, inner) => new { File = outer, Deleted = inner.Any() == false }
                            )
-                          .Where(group => @group.Deleted)
+                          .Where(group => group.Deleted)
                           .Select(group => new FileToBackup(
-                               new FileInfo(group.File),
+                               new FileInfo(Utilities.GetBackupFileDestinationPath(group.File)),
                                FileStatus.Deleted)
                            )
                           .ToList();

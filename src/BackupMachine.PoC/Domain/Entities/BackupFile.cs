@@ -10,6 +10,9 @@ public class BackupFile
     public string Name { get; set; } = string.Empty;
     public string Extension { get; set; } = string.Empty;
     public FileStatus Status { get; set; }
+    public long Length { get; set; }
+    public DateTime Modified { get; set; }
+    public DateTime Created { get; set; }
 
     public virtual Backup Backup { get; set; } = default!;
     public virtual BackupFolder BackupFolder { get; set; } = default!;

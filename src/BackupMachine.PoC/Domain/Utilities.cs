@@ -26,6 +26,6 @@ public static class Utilities
 
     public static string GetBackupFileDestinationPath(BackupFile file)
     {
-        return Path.Combine(GetBackupDestinationRootFolderPath(file.BackupFolder.Backup), file.BackupFolder.RelativePath, file.Name);
+        return Path.Combine(GetBackupDestinationRootFolderPath(file.Backup), file.BackupFolder.RelativePath, file.Name);
     }
 }

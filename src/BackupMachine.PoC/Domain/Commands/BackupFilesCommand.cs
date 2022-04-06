@@ -34,11 +34,10 @@ public class BackupFilesHandler : AsyncRequestHandler<BackupFilesCommand>
         var filesInBackup = await _mediatr.Send(new GetAllFileEntitiesForBackupQuery(request.Backup), cancellationToken);
         foreach (var file in filesInBackup)
         {
-            _logger.LogDebug("Processing file {File}", file.Name);
             switch (file.Status)
             {
                 case FileStatus.New:
-                    await _mediatr.Send(new BackupNewFileCommand(file), cancellationToken);
+                    //await _mediatr.Send(new BackupNewFileCommand(file), cancellationToken);
                     break;
                 case FileStatus.Updated:
                     //await _mediatr.Send(new BackupFileCommand(fileToBackup));

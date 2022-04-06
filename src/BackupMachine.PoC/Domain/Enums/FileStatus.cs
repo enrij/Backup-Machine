@@ -4,5 +4,6 @@ public enum FileStatus
 {
     New,
     Updated,
-    Deleted
+    Deleted,
+    Unchanged
 }

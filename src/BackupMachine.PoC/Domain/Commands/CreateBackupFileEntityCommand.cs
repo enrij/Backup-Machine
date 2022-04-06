@@ -61,7 +61,9 @@ public class CreateBackupFileEntityHandler : IRequestHandler<CreateBackupFileEnt
             Name = request.File.FileInfo.Name,
             Extension = request.File.FileInfo.Extension,
             BackupFolder = folder,
-            Status = request.File.Status
+            Status = request.File.Status,
+            Length = request.File.FileInfo.Length,
+            Modified = request.File.FileInfo.LastWriteTimeUtc
         };
 
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
