@@ -1,4 +1,6 @@
-﻿using BackupMachine.PoC.Domain.Aggregates;
+﻿using System.Diagnostics;
+
+using BackupMachine.PoC.Domain.Aggregates;
 using BackupMachine.PoC.Domain.Entities;
 using BackupMachine.PoC.Domain.Enums;
 using BackupMachine.PoC.Infrastructure;
@@ -95,8 +97,8 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var previousBackupFiles = context.Files
-                                         .Where(file => 
-                                              request.Backup.PreviousBackupId != null && 
+                                         .Where(file =>
+                                              request.Backup.PreviousBackupId != null &&
                                               file.BackupId == request.Backup.PreviousBackupId)
                                          .Include(file => file.BackupFolder)
                                          .Include(file => file.Backup)
@@ -162,7 +164,7 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
                            )
                           .Where(group =>
                                group.File.Length != group.BackupFile.Length ||
-                               group.File.LastWriteTimeUtc != group.BackupFile.Modified&&
+                               group.File.LastWriteTimeUtc != group.BackupFile.Modified &&
                                group.File.CreationTimeUtc != group.BackupFile.Created)
                           .Select(group => new FileToBackup(
                                group.File,

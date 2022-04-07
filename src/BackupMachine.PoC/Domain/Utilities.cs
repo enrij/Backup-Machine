@@ -11,7 +11,8 @@ public static class Utilities
 
     public static string GetBackupDestinationRootFolderPath(Backup backup)
     {
-        return Path.Combine(backup.Job.Destination, $"{backup.Timestamp:yyyy MM dd HH mm ss}");
+        //return Path.Combine(backup.Job.Destination, $"{backup.Timestamp:yyyy MM dd HH mm ss}");
+        return backup.Job.Destination;
     }
 
     public static string GetPathRelativeToJobSource(DirectoryInfo folder, Job job)

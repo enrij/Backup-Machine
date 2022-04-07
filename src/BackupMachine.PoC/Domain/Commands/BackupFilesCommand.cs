@@ -37,13 +37,13 @@ public class BackupFilesHandler : AsyncRequestHandler<BackupFilesCommand>
             switch (file.Status)
             {
                 case FileStatus.New:
-                    //await _mediatr.Send(new BackupNewFileCommand(file), cancellationToken);
+                    await _mediatr.Send(new BackupNewFileCommand(file), cancellationToken);
                     break;
                 case FileStatus.Updated:
                     //await _mediatr.Send(new BackupFileCommand(fileToBackup));
                     break;
                 case FileStatus.Deleted:
-                    //await _mediatr.Send(new DeleteFileCommand(fileToBackup));
+                    await _mediatr.Send(new MoveBackupFileToPreviousVersionCommand(file), cancellationToken);
                     break;
             }
         }

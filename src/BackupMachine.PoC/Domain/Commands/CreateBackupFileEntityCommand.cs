@@ -37,33 +37,16 @@ public class CreateBackupFileEntityHandler : IRequestHandler<CreateBackupFileEnt
 
     public async Task<BackupFile> Handle(CreateBackupFileEntityCommand request, CancellationToken cancellationToken)
     {
-        if (request.File.FileInfo.Directory is null)
-        {
-            throw new ArgumentException("File must have a parent directory.");
-        }
-
-        var folder = await _mediatr.Send(
-            new GetBackupFolderEntityByPathQuery(
-                Utilities.GetPathRelativeToJobSource(
-                    request.File.FileInfo.Directory!,
-                    request.Backup.Job),
-                request.Backup),
-            cancellationToken);
-
-        if (folder is null)
-        {
-            throw new InvalidOperationException($"This backup does not contain a record for folder [{request.File.FileInfo.DirectoryName ?? string.Empty}].");
-        }
-
         var file = new BackupFile
         {
             Backup = request.Backup,
             Name = request.File.FileInfo.Name,
             Extension = request.File.FileInfo.Extension,
-            BackupFolder = folder,
+            BackupFolder = request.Folder,
             Status = request.File.Status,
             Length = request.File.FileInfo.Length,
-            Modified = request.File.FileInfo.LastWriteTimeUtc
+            Modified = request.File.FileInfo.LastWriteTimeUtc,
+            Created = request.File.FileInfo.CreationTimeUtc
         };
 
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);

@@ -27,16 +27,16 @@ public class BackupNewFileHandler : RequestHandler<BackupNewFileCommand>
 
     protected override void Handle(BackupNewFileCommand request)
     {
-        var source = new FileInfo(Path.Combine(request.File.Backup.Job.Source, request.File.BackupFolder.RelativePath, request.File.Name));
+        var file = new FileInfo(Path.Combine(request.File.Backup.Job.Source, request.File.BackupFolder.RelativePath, request.File.Name));
         var destination = new DirectoryInfo(Utilities.GetBackupFileDestinationPath(request.File));
 
-        _logger.LogDebug("Copying file [{File}]", source.FullName);
+        _logger.LogDebug("Copying file [{File}]", file.FullName);
 
-        if (!source.Exists)
+        if (!file.Exists)
         {
-            _logger.LogWarning("File [{File}] not found]", source.FullName);
+            _logger.LogWarning("File [{File}] not found", file.FullName);
         }
 
-        source.CopyTo(destination.FullName);
+        file.CopyTo(destination.FullName, true);
     }
 }
