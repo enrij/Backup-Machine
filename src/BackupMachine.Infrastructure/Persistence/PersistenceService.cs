@@ -15,16 +15,6 @@ public class PersistenceService : IPersistenceService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Backup?> GetLatestBackupAsync(Job job, CancellationToken cancellationToken = default)
-    {
-        await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        return await context.Backups
-                            .Where(backup => backup.JobId == job.Id)
-                            .OrderByDescending(backup => backup.Timestamp)
-                            .FirstOrDefaultAsync(cancellationToken);
-    }
-
     public async Task<BackupFolder?> GetBackupFolderByPathAsync(string relativePath, Backup backup, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -63,7 +53,7 @@ public class PersistenceService : IPersistenceService
     public async Task<Backup> CreateBackupAsync(Job job, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        
+
         var newBackup = new Backup
         {
             Job = job,
@@ -143,5 +133,12 @@ public class PersistenceService : IPersistenceService
         await context.SaveChangesAsync(cancellationToken);
 
         return folder;
+    }
+
+    public async Task<List<Job>> GetJobsAsync(CancellationToken cancellationToken = default)
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await context.Jobs.ToListAsync(cancellationToken);
     }
 }

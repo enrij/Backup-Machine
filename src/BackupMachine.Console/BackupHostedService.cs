@@ -1,38 +1,33 @@
-﻿using BackupMachine.Core.Commands;
+﻿using BackupMachine.Core.Services;
 using BackupMachine.Infrastructure.Persistence;
 
-using MediatR;
-
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace BackupMachine.Console;
 
 public class BackupHostedService : IHostedService
 {
-    private readonly IDbContextFactory<BackupMachineContext> _dbContextFactory;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly BackupsService _backupsService;
+    private readonly JobsService _jobsService;
 
-    public BackupHostedService(IDbContextFactory<BackupMachineContext> dbContextFactory, IServiceProvider serviceProvider)
+    public BackupHostedService(IDbContextFactory<BackupMachineContext> dbContextFactory, BackupsService backupsService, JobsService jobsService)
     {
-        _dbContextFactory = dbContextFactory;
-        _serviceProvider = serviceProvider;
-        var context = dbContextFactory.CreateDbContext();
+        _backupsService = backupsService;
+        _jobsService = jobsService;
 
+        // TODO: Must find a different way to initialize database
+        var context = dbContextFactory.CreateDbContext();
         context.Database.Migrate();
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var mediatr = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var jobsList = await _jobsService.GetJobs();
 
-        await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        foreach (var job in context.Jobs)
+        foreach (var job in jobsList)
         {
-            await mediatr.Send(new ExecuteJobCommand(job), cancellationToken);
+            await _backupsService.ExecuteJobBackupAsync(job, cancellationToken);
         }
     }
 
