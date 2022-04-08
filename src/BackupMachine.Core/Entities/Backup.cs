@@ -7,6 +7,6 @@ public class Backup
     public DateTime Timestamp { get; set; }
     public Guid? PreviousBackupId { get; set; }
 
-    public virtual Job Job { get; set; } = default!;
-    public virtual Backup? PreviousBackup { get; set; }
+    public Job Job { get; set; } = default!;
+    public Backup? PreviousBackup { get; set; }
 }

@@ -37,25 +37,14 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
     public async Task<BackupFolder> Handle(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Analyzing folder [{Folder}]", request.Source.FullName);
+        
+        var destinationEntity = await CreateDestinationEntity(request, cancellationToken);
 
-        var destinationEntity = await _mediatr.Send(new CreateBackupFolderEntityCommand(request.Backup, request.Source), cancellationToken);
+        var previousBackupFiles = (await _persistenceService.GetPreviousBackupFilesAsync(request.Backup, request.Source, cancellationToken))
+                                 .Where(file => file.Status != FileStatus.Deleted)
+                                 .ToList();
 
-        var previousBackupFiles = await GetPreviousBackupFileEntities(request, cancellationToken);
-
-        List<FileToBackup> filesToBackup;
-
-        if (previousBackupFiles.Count > 0)
-        {
-            filesToBackup = CompareActualFilesToBackup(request.Source, previousBackupFiles);
-        }
-        else
-        {
-            filesToBackup = request.Source
-                                   .GetFiles()
-                                   .Select(file => new FileToBackup(file, FileStatus.New))
-                                   .TakeWhile(_ => cancellationToken.IsCancellationRequested == false)
-                                   .ToList();
-        }
+        var filesToBackup = CompareActualFilesToBackup(request.Source, previousBackupFiles);
 
         if (filesToBackup.Any(file => file.Status != FileStatus.Unchanged))
         {
@@ -71,8 +60,9 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
 
         foreach (var fileToBackup in filesToBackup.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
-            var fileEntity = await _mediatr.Send(new CreateBackupFileEntityCommand(request.Backup, destinationEntity, fileToBackup), cancellationToken);
-            destinationEntity.Files.Add(fileEntity);
+            var file = await CreateFileEntity(request, cancellationToken, fileToBackup, destinationEntity);
+
+            destinationEntity.Files.Add(file);
         }
 
         foreach (var directory in request.Source.GetDirectories().TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
@@ -83,15 +73,44 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
 
         if (filesToBackup.Count > 0 || destinationEntity.Subfolders.Count > 0)
         {
-            destinationEntity = await _mediatr.Send(new UpdateBackupFolderCommand(destinationEntity), cancellationToken);
+            destinationEntity = await _persistenceService.UpdateBackupFolderAsync(destinationEntity, cancellationToken);
         }
 
         return destinationEntity;
     }
 
-    private async Task<List<BackupFile>> GetPreviousBackupFileEntities(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken)
+    private async Task<BackupFile> CreateFileEntity(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken, FileToBackup fileToBackup, BackupFolder destinationEntity)
     {
-        return await _persistenceService.GetPreviousBackupFilesAsync(request.Backup, request.Source, cancellationToken);
+        var file = new BackupFile
+        {
+            Backup = request.Backup,
+            Name = fileToBackup.FileInfo.Name,
+            Extension = fileToBackup.FileInfo.Extension,
+            BackupFolder = destinationEntity,
+            Status = fileToBackup.Status,
+            Length = fileToBackup.FileInfo.Length,
+            Modified = fileToBackup.FileInfo.LastWriteTimeUtc,
+            Created = fileToBackup.FileInfo.CreationTimeUtc
+        };
+
+        file = await _persistenceService.CreateBackupFileAsync(file, cancellationToken);
+        return file;
+    }
+
+    private async Task<BackupFolder> CreateDestinationEntity(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken)
+    {
+        var destinationEntity = new BackupFolder
+        {
+            Backup = request.Backup,
+            RelativePath = Utilities.GetRelativePathFromJobSource(request.Source, request.Backup.Job),
+            ParentFolder =
+                request.Source.Parent is null
+                    ? null
+                    : await _persistenceService.GetBackupFolderByPathAsync(request.Source.Parent.FullName, request.Backup, cancellationToken)
+        };
+
+        destinationEntity = await _persistenceService.CreateBackupFolderAsync(destinationEntity, cancellationToken);
+        return destinationEntity;
     }
 
     private List<FileToBackup> CompareActualFilesToBackup(DirectoryInfo source, List<BackupFile> previousBackupFiles)
@@ -185,7 +204,7 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
                            )
                           .Where(group => group.Deleted)
                           .Select(group => new FileToBackup(
-                               new FileInfo(Utilities.GetBackupFileDestinationPath(group.File)),
+                               Utilities.GetBackupFileDestinationPath(group.File),
                                FileStatus.Deleted)
                            )
                           .ToList();

@@ -1,4 +1,5 @@
 ﻿using BackupMachine.Core.Entities;
+using BackupMachine.Core.Interfaces;
 
 using MediatR;
 
@@ -16,6 +17,13 @@ public class MoveFileFromPreviousBackupCommand : IRequest
 
 public class MoveFileFromPreviousBackupHandler : RequestHandler<MoveFileFromPreviousBackupCommand>
 {
+    private readonly IFileSystemService _fileSystemService;
+
+    public MoveFileFromPreviousBackupHandler(IFileSystemService fileSystemService)
+    {
+        _fileSystemService = fileSystemService;
+    }
+
     protected override void Handle(MoveFileFromPreviousBackupCommand request)
     {
         if (request.File.Backup.PreviousBackup is null)
@@ -23,9 +31,9 @@ public class MoveFileFromPreviousBackupHandler : RequestHandler<MoveFileFromPrev
             throw new InvalidDataException("File has no previous backup");
         }
 
-        var source = new FileInfo(Utilities.GetBackupFileDestinationPath(request.File, request.File.Backup.PreviousBackup));
-        var destination = new FileInfo(Utilities.GetBackupFileDestinationPath(request.File));
+        var source = Utilities.GetBackupFileDestinationPath(request.File, request.File.Backup.PreviousBackup);
+        var destination = Utilities.GetBackupFileDestinationPath(request.File);
 
-        source.MoveTo(destination.FullName);
+        _fileSystemService.MoveFile(source, destination);
     }
 }

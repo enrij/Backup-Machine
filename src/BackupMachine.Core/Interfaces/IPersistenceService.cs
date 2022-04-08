@@ -8,7 +8,7 @@ public interface IPersistenceService
     Task<BackupFolder?> GetBackupFolderByPathAsync(string relativePath, Backup backup, CancellationToken cancellationToken = default);
     Task<List<BackupFolder>> GetAllFoldersForBackupAsync(Backup backup, CancellationToken cancellationToken = default);
     Task<List<BackupFile>> GetAllFilesForBackupAsync(Backup backup, CancellationToken cancellationToken = default);
-    Task<Backup> CreateBackupAsync(Backup backup, CancellationToken cancellationToken = default);
+    Task<Backup> CreateBackupAsync(Job backup, CancellationToken cancellationToken = default);
     Task<BackupFile> CreateBackupFileAsync(BackupFile file, CancellationToken cancellationToken = default);
     Task<BackupFolder> CreateBackupFolderAsync(BackupFolder folder, CancellationToken cancellationToken = default);
     Task<List<BackupFile>> GetPreviousBackupFilesAsync(Backup backup, DirectoryInfo source, CancellationToken cancellationToken = default);

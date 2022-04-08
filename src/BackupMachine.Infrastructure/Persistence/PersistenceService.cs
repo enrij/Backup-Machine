@@ -1,6 +1,5 @@
 ﻿using BackupMachine.Core;
 using BackupMachine.Core.Entities;
-using BackupMachine.Core.Enums;
 using BackupMachine.Core.Interfaces;
 
 using Microsoft.EntityFrameworkCore;
@@ -33,9 +32,7 @@ public class PersistenceService : IPersistenceService
         return context.Folders
                       .Where(folder => folder.BackupId == backup.Id)
                       .Include(folder => folder.Files)
-                      .AsEnumerable()
-                      .FirstOrDefault(
-                           folder => folder.RelativePath == relativePath);
+                      .FirstOrDefault(folder => folder.RelativePath == relativePath);
     }
 
     public async Task<List<BackupFolder>> GetAllFoldersForBackupAsync(Backup backup, CancellationToken cancellationToken = default)
@@ -63,13 +60,24 @@ public class PersistenceService : IPersistenceService
                             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Backup> CreateBackupAsync(Backup backup, CancellationToken cancellationToken = default)
+    public async Task<Backup> CreateBackupAsync(Job job, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        context.Entry(backup).State = EntityState.Added;
+        
+        var newBackup = new Backup
+        {
+            Job = job,
+            Timestamp = DateTime.Now,
+            PreviousBackup = await context.Backups
+                                          .Where(backup => backup.JobId == job.Id)
+                                          .OrderByDescending(backup => backup.Timestamp)
+                                          .FirstOrDefaultAsync(cancellationToken)
+        };
+
+        context.Attach(newBackup);
         await context.SaveChangesAsync(cancellationToken);
 
-        return backup;
+        return newBackup;
     }
 
     public async Task<BackupFile> CreateBackupFileAsync(BackupFile file, CancellationToken cancellationToken = default)
@@ -97,13 +105,11 @@ public class PersistenceService : IPersistenceService
         var previousBackupFiles = context.Files
                                          .Where(file =>
                                               backup.PreviousBackupId != null &&
-                                              file.BackupId == backup.PreviousBackupId &&
-                                              file.Status != FileStatus.Deleted)
+                                              file.BackupId == backup.PreviousBackupId)
                                          .Include(file => file.BackupFolder)
                                          .Include(file => file.Backup)
-                                         .ThenInclude(backup => backup.Job)
-                                         .AsEnumerable()
-                                         .Where(file => file.BackupFolder.RelativePath == Utilities.GetPathRelativeToJobSource(source, backup.Job))
+                                         .ThenInclude(fileBackup => fileBackup.Job)
+                                         .Where(file => file.BackupFolder.RelativePath == Utilities.GetRelativePathFromJobSource(source, backup.Job))
                                          .Select(file => file)
                                          .Distinct()
                                          .ToList();

@@ -1,6 +1,6 @@
 ﻿using BackupMachine.Core.Entities;
 using BackupMachine.Core.Enums;
-using BackupMachine.Core.Queries;
+using BackupMachine.Core.Interfaces;
 
 using MediatR;
 
@@ -22,16 +22,18 @@ public class BackupFilesHandler : AsyncRequestHandler<BackupFilesCommand>
 {
     private readonly ILogger<BackupFilesHandler> _logger;
     private readonly IMediator _mediatr;
+    private readonly IPersistenceService _persistenceService;
 
-    public BackupFilesHandler(IMediator mediatr, ILogger<BackupFilesHandler> logger)
+    public BackupFilesHandler(IMediator mediatr, ILogger<BackupFilesHandler> logger, IPersistenceService persistenceService)
     {
         _mediatr = mediatr;
         _logger = logger;
+        _persistenceService = persistenceService;
     }
 
     protected override async Task Handle(BackupFilesCommand request, CancellationToken cancellationToken)
     {
-        var filesInBackup = await _mediatr.Send(new GetAllFileEntitiesForBackupQuery(request.Backup), cancellationToken);
+        var filesInBackup = await _persistenceService.GetAllFilesForBackupAsync(request.Backup, cancellationToken);
         foreach (var file in filesInBackup)
         {
             _logger.LogDebug("Processing file [{File}]", file.Name);

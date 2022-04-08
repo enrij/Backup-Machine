@@ -1,4 +1,5 @@
 ﻿using BackupMachine.Core.Entities;
+using BackupMachine.Core.Interfaces;
 
 using MediatR;
 
@@ -18,17 +19,19 @@ public class BackupFileCommand : IRequest
 
 public class BackupFileHandler : RequestHandler<BackupFileCommand>
 {
+    private readonly IFileSystemService _fileSystemService;
     private readonly ILogger<BackupFileHandler> _logger;
 
-    public BackupFileHandler(ILogger<BackupFileHandler> logger)
+    public BackupFileHandler(ILogger<BackupFileHandler> logger, IFileSystemService fileSystemService)
     {
         _logger = logger;
+        _fileSystemService = fileSystemService;
     }
 
     protected override void Handle(BackupFileCommand request)
     {
-        var file = new FileInfo(Path.Combine(request.File.Backup.Job.Source, request.File.BackupFolder.RelativePath, request.File.Name));
-        var destination = new DirectoryInfo(Utilities.GetBackupFileDestinationPath(request.File));
+        var file = Utilities.GetBackupFileSourceInfo(request.File);
+        var destination = Utilities.GetBackupFileDestinationPath(request.File);
 
         if (!file.Exists)
         {
@@ -36,7 +39,7 @@ public class BackupFileHandler : RequestHandler<BackupFileCommand>
             return;
         }
 
-        file.CopyTo(destination.FullName, true);
+        _fileSystemService.CopyFile(file, destination);
 
         _logger.LogDebug("File [{File}] copied", file.FullName);
     }

@@ -14,6 +14,6 @@ public class BackupFile
     public DateTime Modified { get; set; }
     public DateTime Created { get; set; }
 
-    public virtual Backup Backup { get; set; } = default!;
-    public virtual BackupFolder BackupFolder { get; set; } = default!;
+    public Backup Backup { get; set; } = default!;
+    public BackupFolder BackupFolder { get; set; } = default!;
 }

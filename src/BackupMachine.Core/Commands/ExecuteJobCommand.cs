@@ -1,4 +1,5 @@
 ﻿using BackupMachine.Core.Entities;
+using BackupMachine.Core.Interfaces;
 
 using MediatR;
 
@@ -18,13 +19,17 @@ public class ExecuteJobCommand : IRequest
 
 public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
 {
+    private readonly IFileSystemService _fileSystemService;
     private readonly ILogger<ExecuteJobHandler> _logger;
     private readonly IMediator _mediatr;
+    private readonly IPersistenceService _persistenceService;
 
-    public ExecuteJobHandler(ILogger<ExecuteJobHandler> logger, IMediator mediatr)
+    public ExecuteJobHandler(ILogger<ExecuteJobHandler> logger, IMediator mediatr, IPersistenceService persistenceService, IFileSystemService fileSystemService)
     {
         _logger = logger;
         _mediatr = mediatr;
+        _persistenceService = persistenceService;
+        _fileSystemService = fileSystemService;
     }
 
     protected override async Task Handle(ExecuteJobCommand request, CancellationToken cancellationToken)
@@ -32,11 +37,12 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
         /*
          Stage 1: Create database entries
          Stage 2: Create folders structure at destination
+         Stage 3: Copy files from source to destination
          */
 
         _logger.LogDebug("Job [{Name}] started", request.Job.Name);
         // Stage 1
-        var backup = await _mediatr.Send(new CreateBackupEntityCommand(request.Job), cancellationToken);
+        var backup = await _persistenceService.CreateBackupAsync(request.Job, cancellationToken);
 
         try
         {
@@ -57,12 +63,9 @@ public class ExecuteJobHandler : AsyncRequestHandler<ExecuteJobCommand>
         {
             _logger.LogCritical(e, "Job [{Name}] failed. Cleaning invalid data", request.Job.Name);
 
-            await _mediatr.Send(new DeleteBackupEntityCommand(backup), cancellationToken);
+            await _persistenceService.DeleteBackupAsync(backup, cancellationToken);
 
-            if (Directory.Exists(Utilities.GetBackupDestinationRootFolderPath(backup)))
-            {
-                await _mediatr.Send(new DeleteFolderCommand(Utilities.GetBackupDestinationRootFolderPath(backup)), cancellationToken);
-            }
+            _fileSystemService.DeleteFolder(Utilities.GetBackupDestinationRootFolderPath(backup));
         }
     }
 }

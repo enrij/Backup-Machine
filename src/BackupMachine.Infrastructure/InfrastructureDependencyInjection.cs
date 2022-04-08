@@ -1,4 +1,5 @@
 ﻿using BackupMachine.Core.Interfaces;
+using BackupMachine.Infrastructure.FileSystem;
 using BackupMachine.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,7 @@ public static class InfrastructureDependencyInjection
                                 optionsBuilder => { optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery); }
                             );
                         })
-                       .AddScoped<IPersistenceService, PersistenceService>();
+                       .AddScoped<IPersistenceService, PersistenceService>()
+                       .AddScoped<IFileSystemService, FileSystemService>();
     }
 }

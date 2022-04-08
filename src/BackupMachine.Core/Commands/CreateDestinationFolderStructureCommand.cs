@@ -1,5 +1,5 @@
 ﻿using BackupMachine.Core.Entities;
-using BackupMachine.Core.Queries;
+using BackupMachine.Core.Interfaces;
 
 using MediatR;
 
@@ -17,19 +17,21 @@ public class CreateDestinationFolderStructureCommand : IRequest
 
 public class CreateDestinationFolderStructureHandler : AsyncRequestHandler<CreateDestinationFolderStructureCommand>
 {
-    private readonly IMediator _mediatr;
+    private readonly IFileSystemService _fileSystemService;
+    private readonly IPersistenceService _persistenceService;
 
-    public CreateDestinationFolderStructureHandler(IMediator mediatr)
+    public CreateDestinationFolderStructureHandler(IFileSystemService fileSystemService, IPersistenceService persistenceService)
     {
-        _mediatr = mediatr;
+        _fileSystemService = fileSystemService;
+        _persistenceService = persistenceService;
     }
 
     protected override async Task Handle(CreateDestinationFolderStructureCommand request, CancellationToken cancellationToken)
     {
-        var foldersInBackup = await _mediatr.Send(new GetAllFolderEntitiesForBackupQuery(request.Backup), cancellationToken);
+        var foldersInBackup = await _persistenceService.GetAllFoldersForBackupAsync(request.Backup, cancellationToken);
         foreach (var folder in foldersInBackup)
         {
-            Directory.CreateDirectory(Utilities.GetBackupFolderDestinationPath(folder));
+            _fileSystemService.CreateDirectory(Utilities.GetBackupFolderDestinationPath(folder));
         }
     }
 }
