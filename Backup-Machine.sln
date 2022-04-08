@@ -1,8 +1,29 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{F790221B-B1C7-4A95-855B-F9BC7C794D5D}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1318AA1E-2A1A-4103-AF83-B8BC6F860990}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E9E32370-16A7-45FE-94B1-E0B8C452CCDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackupMachine.PoC", "src\BackupMachine.PoC\BackupMachine.PoC.csproj", "{477F5F2C-01C2-44DE-B408-070C5A41B0BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{477F5F2C-01C2-44DE-B408-070C5A41B0BC} = {1318AA1E-2A1A-4103-AF83-B8BC6F860990}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{477F5F2C-01C2-44DE-B408-070C5A41B0BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{477F5F2C-01C2-44DE-B408-070C5A41B0BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{477F5F2C-01C2-44DE-B408-070C5A41B0BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{477F5F2C-01C2-44DE-B408-070C5A41B0BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
