@@ -91,11 +91,11 @@ public class BackupsService
         }
     }
 
-    private async Task<BackupFolder> CreateDatabaseDataFromFolder(DirectoryInfo source, Backup backup, CancellationToken cancellationToken = default)
+    private async Task<BackupFolder> CreateDatabaseDataFromFolderAsync(DirectoryInfo source, Backup backup, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Analyzing folder [{Folder}]", source.FullName);
 
-        var destinationEntity = await CreateDestinationEntity(source, backup, cancellationToken);
+        var destinationEntity = await CreateDestinationEntityAsync(source, backup, cancellationToken);
 
         var previousBackupFiles = (await _persistenceService.GetPreviousBackupFilesAsync(backup, source, cancellationToken))
                                  .Where(file => file.Status != FileStatus.Deleted)
@@ -117,14 +117,14 @@ public class BackupsService
 
         foreach (var fileToBackup in filesToBackup.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
-            var file = await CreateFileEntity(backup, fileToBackup, destinationEntity, cancellationToken);
+            var file = await CreateFileEntityAsync(backup, fileToBackup, destinationEntity, cancellationToken);
 
             destinationEntity.Files.Add(file);
         }
 
         foreach (var directory in source.GetDirectories().TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
-            var subfolderEntity = await CreateDatabaseDataFromFolder(directory, backup, cancellationToken);
+            var subfolderEntity = await CreateDatabaseDataFromFolderAsync(directory, backup, cancellationToken);
             destinationEntity.Subfolders.Add(subfolderEntity);
         }
 
@@ -136,7 +136,7 @@ public class BackupsService
         return destinationEntity;
     }
 
-    private async Task<BackupFile> CreateFileEntity(Backup backup, FileToBackup fileToBackup, BackupFolder destinationEntity, CancellationToken cancellationToken)
+    private async Task<BackupFile> CreateFileEntityAsync(Backup backup, FileToBackup fileToBackup, BackupFolder destinationEntity, CancellationToken cancellationToken)
     {
         var (info, status) = fileToBackup;
         var file = new BackupFile
@@ -155,7 +155,7 @@ public class BackupsService
         return file;
     }
 
-    private async Task<BackupFolder> CreateDestinationEntity(DirectoryInfo source, Backup backup, CancellationToken cancellationToken = default)
+    private async Task<BackupFolder> CreateDestinationEntityAsync(DirectoryInfo source, Backup backup, CancellationToken cancellationToken = default)
     {
         var destinationEntity = new BackupFolder
         {
@@ -285,7 +285,7 @@ public class BackupsService
             var source = new DirectoryInfo(job.Source);
 
             // Stage 1
-            await CreateDatabaseDataFromFolder(source, backup, cancellationToken);
+            await CreateDatabaseDataFromFolderAsync(source, backup, cancellationToken);
 
             // Stage 2
             await CreateDestinationBackupFolderStructureAsync(backup, cancellationToken);
