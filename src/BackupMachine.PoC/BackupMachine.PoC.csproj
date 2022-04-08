@@ -18,22 +18,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="appsettings.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-        <Content Include="appsettings.Development.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Domain\Services" />
-    </ItemGroup>
-
-    <ItemGroup>
         <None Remove="BackupMachine.db" />
         <None Remove="BackupMachine.db-shm" />
         <None Remove="BackupMachine.db-wal" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BackupMachine.Infrastructure\BackupMachine.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
