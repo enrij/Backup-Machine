@@ -19,7 +19,7 @@ public class BackupConfiguration : IEntityTypeConfiguration<Backup>
                .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(backup => backup.PreviousBackup)
-               .WithMany() // TODO: This is a lie but I don't want to create a useless property (and a circular reference)
+               .WithMany() // This is a lie but I don't want to create a useless property (and a circular reference) on Backup entity
                .HasForeignKey(backup => backup.PreviousBackupId)
                .OnDelete(DeleteBehavior.NoAction);
     }

@@ -1,6 +1,6 @@
 ﻿using BackupMachine.Core.Enums;
 
-namespace BackupMachine.PoC.Domain.Aggregates;
+namespace BackupMachine.Core.Aggregates;
 
 public record FileToBackup(
     FileInfo FileInfo,

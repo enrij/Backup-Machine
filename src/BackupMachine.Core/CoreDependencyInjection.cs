@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using BackupMachine.Core.Services;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +8,7 @@ public static class CoreDependencyInjection
 {
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        return services.AddMediatR(configuration => { configuration.AsScoped(); }, typeof(CoreAssemblyMarker));
+        return services.AddSingleton<BackupsService>()
+                       .AddSingleton<JobsService>();
     }
 }

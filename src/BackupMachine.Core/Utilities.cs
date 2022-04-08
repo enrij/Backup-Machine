@@ -4,38 +4,33 @@ namespace BackupMachine.Core;
 
 public static class Utilities
 {
-    public static string ComposeBackupArchiveName(Backup backup)
+    public static DirectoryInfo GetBackupDestinationRootFolderPath(Backup backup)
     {
-        return $"BackupMachine-{backup.Timestamp:yyyy MM dd HH mm ss}.zip";
+        return new DirectoryInfo(Path.Combine(backup.Job.Destination, $"{backup.Timestamp:yyyy-MM-dd-HH-mm-ss}"));
     }
 
-    public static string GetBackupDestinationRootFolderPath(Backup backup)
-    {
-        return Path.Combine(backup.Job.Destination, $"{backup.Timestamp:yyyy MM dd HH mm ss}");
-    }
-
-    public static string GetPathRelativeToJobSource(DirectoryInfo folder, Job job)
+    public static string GetRelativePathFromJobSource(DirectoryInfo folder, Job job)
     {
         return folder.FullName.Replace(job.Source, string.Empty).TrimStart('\\');
     }
 
-    public static string GetBackupFolderDestinationPath(BackupFolder folder)
+    public static DirectoryInfo GetBackupFolderDestinationPath(BackupFolder folder)
     {
-        return Path.Combine(GetBackupDestinationRootFolderPath(folder.Backup), folder.RelativePath);
+        return new DirectoryInfo(Path.Combine(GetBackupDestinationRootFolderPath(folder.Backup).FullName, folder.RelativePath));
     }
 
-    public static string GetBackupFileDestinationPath(BackupFile file)
+    public static FileInfo GetBackupFileDestinationPath(BackupFile file)
     {
-        return Path.Combine(GetBackupDestinationRootFolderPath(file.Backup), file.BackupFolder.RelativePath, file.Name);
+        return new FileInfo(Path.Combine(GetBackupDestinationRootFolderPath(file.Backup).FullName, file.BackupFolder.RelativePath, file.Name));
     }
 
-    public static string GetBackupFileDestinationPath(BackupFile file, Backup backup)
+    public static FileInfo GetBackupFileSourceInfo(BackupFile file)
     {
-        return Path.Combine(GetBackupDestinationRootFolderPath(backup), file.BackupFolder.RelativePath, file.Name);
+        return new FileInfo(Path.Combine(file.Backup.Job.Source, file.BackupFolder.RelativePath, file.Name));
     }
 
-    public static string GetJobRootFolderDestinationPath(Job job)
+    public static FileInfo GetBackupFileDestinationPath(BackupFile file, Backup backup)
     {
-        return job.Destination;
+        return new FileInfo(Path.Combine(GetBackupDestinationRootFolderPath(backup).FullName, file.BackupFolder.RelativePath, file.Name));
     }
 }
