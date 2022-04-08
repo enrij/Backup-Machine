@@ -99,7 +99,8 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
         var previousBackupFiles = context.Files
                                          .Where(file =>
                                               request.Backup.PreviousBackupId != null &&
-                                              file.BackupId == request.Backup.PreviousBackupId)
+                                              file.BackupId == request.Backup.PreviousBackupId &&
+                                              file.Status != FileStatus.Deleted)
                                          .Include(file => file.BackupFolder)
                                          .Include(file => file.Backup)
                                          .ThenInclude(backup => backup.Job)

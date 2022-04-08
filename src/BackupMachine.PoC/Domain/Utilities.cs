@@ -1,4 +1,5 @@
 ﻿using BackupMachine.PoC.Domain.Entities;
+using BackupMachine.PoC.Domain.Enums;
 
 namespace BackupMachine.PoC.Domain;
 
@@ -11,8 +12,7 @@ public static class Utilities
 
     public static string GetBackupDestinationRootFolderPath(Backup backup)
     {
-        //return Path.Combine(backup.Job.Destination, $"{backup.Timestamp:yyyy MM dd HH mm ss}");
-        return backup.Job.Destination;
+        return Path.Combine(backup.Job.Destination, $"{backup.Timestamp:yyyy MM dd HH mm ss}");
     }
 
     public static string GetPathRelativeToJobSource(DirectoryInfo folder, Job job)
@@ -28,5 +28,15 @@ public static class Utilities
     public static string GetBackupFileDestinationPath(BackupFile file)
     {
         return Path.Combine(GetBackupDestinationRootFolderPath(file.Backup), file.BackupFolder.RelativePath, file.Name);
+    }
+
+    public static string GetBackupFileDestinationPath(BackupFile file, Backup backup)
+    {
+        return Path.Combine(GetBackupDestinationRootFolderPath(backup), file.BackupFolder.RelativePath, file.Name);
+    }
+
+    public static string GetJobRootFolderDestinationPath(Job job)
+    {
+        return job.Destination;
     }
 }

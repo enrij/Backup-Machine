@@ -34,6 +34,8 @@ public class GetAllFileEntitiesForBackupHandler : IRequestHandler<GetAllFileEnti
                             .Where(file => file.BackupId == request.Backup.Id)
                             .Include(file => file.Backup)
                             .ThenInclude(backup => backup.Job)
+                            .Include(file => file.Backup)
+                            .ThenInclude(backup => backup.PreviousBackup)
                             .Include(file => file.BackupFolder)
                             .ToListAsync(cancellationToken);
     }

@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace BackupMachine.PoC.Domain.Commands;
 
-public class BackupNewFileCommand : IRequest
+public class BackupFileCommand : IRequest
 {
-    public BackupNewFileCommand(BackupFile file)
+    public BackupFileCommand(BackupFile file)
     {
         File = file;
     }
@@ -16,27 +16,28 @@ public class BackupNewFileCommand : IRequest
     public BackupFile File { get; set; }
 }
 
-public class BackupNewFileHandler : RequestHandler<BackupNewFileCommand>
+public class BackupFileHandler : RequestHandler<BackupFileCommand>
 {
-    private readonly ILogger<BackupNewFileHandler> _logger;
+    private readonly ILogger<BackupFileHandler> _logger;
 
-    public BackupNewFileHandler(ILogger<BackupNewFileHandler> logger)
+    public BackupFileHandler(ILogger<BackupFileHandler> logger)
     {
         _logger = logger;
     }
 
-    protected override void Handle(BackupNewFileCommand request)
+    protected override void Handle(BackupFileCommand request)
     {
         var file = new FileInfo(Path.Combine(request.File.Backup.Job.Source, request.File.BackupFolder.RelativePath, request.File.Name));
         var destination = new DirectoryInfo(Utilities.GetBackupFileDestinationPath(request.File));
 
-        _logger.LogDebug("Copying file [{File}]", file.FullName);
-
         if (!file.Exists)
         {
             _logger.LogWarning("File [{File}] not found", file.FullName);
+            return;
         }
 
         file.CopyTo(destination.FullName, true);
+
+        _logger.LogDebug("File [{File}] copied", file.FullName);
     }
 }
