@@ -4,5 +4,4 @@ namespace BackupMachine.Infrastructure.FileSystem;
 
 public class FileSystemService : IFileSystemService
 {
-    
 }

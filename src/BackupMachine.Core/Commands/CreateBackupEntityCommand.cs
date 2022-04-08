@@ -1,6 +1,5 @@
 ﻿using BackupMachine.Core.Entities;
 using BackupMachine.Core.Interfaces;
-using BackupMachine.Core.Queries;
 
 using MediatR;
 

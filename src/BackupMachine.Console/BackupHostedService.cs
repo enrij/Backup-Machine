@@ -25,10 +25,9 @@ public class BackupHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        
         using var scope = _serviceProvider.CreateScope();
         var mediatr = scope.ServiceProvider.GetRequiredService<IMediator>();
-        
+
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         foreach (var job in context.Jobs)

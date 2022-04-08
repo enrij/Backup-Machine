@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-using BackupMachine.Core;
+﻿using BackupMachine.Core;
 using BackupMachine.Core.Entities;
 using BackupMachine.Core.Enums;
 using BackupMachine.Core.Interfaces;
@@ -70,7 +68,7 @@ public class PersistenceService : IPersistenceService
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         context.Entry(backup).State = EntityState.Added;
         await context.SaveChangesAsync(cancellationToken);
-        
+
         return backup;
     }
 
@@ -126,7 +124,6 @@ public class PersistenceService : IPersistenceService
 
         context.RemoveRange(filesToDelete);
         context.RemoveRange(foldersToDelete);
-        // TODO: Remove(backup) should remove all the files and folders associated with the backup
         context.Remove(backup);
 
         await context.SaveChangesAsync(cancellationToken);
@@ -136,10 +133,9 @@ public class PersistenceService : IPersistenceService
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // TODO: We can do better for sure!!! :)
-        var folderToSave = folder;
+        context.Update(folder);
         await context.SaveChangesAsync(cancellationToken);
 
-        return folderToSave;
+        return folder;
     }
 }
