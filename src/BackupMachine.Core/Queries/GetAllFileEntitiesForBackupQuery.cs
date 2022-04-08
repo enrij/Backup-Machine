@@ -26,6 +26,6 @@ public class GetAllFileEntitiesForBackupHandler : IRequestHandler<GetAllFileEnti
 
     public async Task<List<BackupFile>> Handle(GetAllFileEntitiesForBackupQuery request, CancellationToken cancellationToken)
     {
-        return await _persistenceService.GetAllFileEntitiesForBackup(request.Backup, cancellationToken);
+        return await _persistenceService.GetAllFilesForBackupAsync(request.Backup, cancellationToken);
     }
 }

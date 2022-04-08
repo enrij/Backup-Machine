@@ -31,10 +31,10 @@ public class CreateBackupEntityHandler : IRequestHandler<CreateBackupEntityComma
         {
             Job = request.Job,
             Timestamp = DateTime.Now,
-            PreviousBackup = await _persistenceService.GetLatestBackup(request.Job, cancellationToken)
+            PreviousBackup = await _persistenceService.GetLatestBackupAsync(request.Job, cancellationToken)
         };
 
-        backup = await _persistenceService.CreateBackupEntity(backup, cancellationToken);
+        backup = await _persistenceService.CreateBackupAsync(backup, cancellationToken);
 
         return backup;
     }

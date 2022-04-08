@@ -36,10 +36,10 @@ public class CreateBackupFolderEntityHandler : IRequestHandler<CreateBackupFolde
             ParentFolder =
                 request.SourceFolder.Parent is null
                     ? null
-                    : await _persistenceService.GetBackupFolderEntityByPath(request.SourceFolder.Parent.FullName, request.Backup, cancellationToken)
+                    : await _persistenceService.GetBackupFolderByPathAsync(request.SourceFolder.Parent.FullName, request.Backup, cancellationToken)
         };
 
-        folder = await _persistenceService.CreateBackupFolderEntity(folder, cancellationToken);
+        folder = await _persistenceService.CreateBackupFolderAsync(folder, cancellationToken);
 
         return folder;
     }

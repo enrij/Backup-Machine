@@ -43,7 +43,7 @@ public class CreateBackupFileEntityHandler : IRequestHandler<CreateBackupFileEnt
             Created = request.File.FileInfo.CreationTimeUtc
         };
 
-        file = await _persistenceService.CreateBackupFile(file, cancellationToken);
+        file = await _persistenceService.CreateBackupFileAsync(file, cancellationToken);
 
         return file;
     }

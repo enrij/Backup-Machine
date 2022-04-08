@@ -91,7 +91,7 @@ public class CreateDatabaseDataFromFolderHandler : IRequestHandler<CreateDatabas
 
     private async Task<List<BackupFile>> GetPreviousBackupFileEntities(CreateDatabaseDataFromFolderCommand request, CancellationToken cancellationToken)
     {
-        return await _persistenceService.GetPreviousBackupFileEntities(request.Backup, request.Source, cancellationToken);
+        return await _persistenceService.GetPreviousBackupFilesAsync(request.Backup, request.Source, cancellationToken);
     }
 
     private List<FileToBackup> CompareActualFilesToBackup(DirectoryInfo source, List<BackupFile> previousBackupFiles)

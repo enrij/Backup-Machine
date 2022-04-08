@@ -26,6 +26,6 @@ public class DeleteBackupEntityHandler : AsyncRequestHandler<DeleteBackupEntityC
 
     protected override async Task Handle(DeleteBackupEntityCommand request, CancellationToken cancellationToken)
     {
-        await _persistenceService.DeleteBackupEntity(request.Backup, cancellationToken);
+        await _persistenceService.DeleteBackupAsync(request.Backup, cancellationToken);
     }
 }

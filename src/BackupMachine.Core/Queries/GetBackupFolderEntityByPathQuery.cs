@@ -28,6 +28,6 @@ public class GetBackupFolderEntityByPathHandler : IRequestHandler<GetBackupFolde
 
     public async Task<BackupFolder?> Handle(GetBackupFolderEntityByPathQuery request, CancellationToken cancellationToken)
     {
-        return await _persistenceService.GetBackupFolderEntityByPath(request.RelativePath, request.Backup);
+        return await _persistenceService.GetBackupFolderByPathAsync(request.RelativePath, request.Backup);
     }
 }

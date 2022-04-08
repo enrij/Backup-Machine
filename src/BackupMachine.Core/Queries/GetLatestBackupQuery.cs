@@ -26,6 +26,6 @@ public class GetLatestBackupHandler : IRequestHandler<GetLatestBackupQuery, Back
 
     public async Task<Backup?> Handle(GetLatestBackupQuery request, CancellationToken cancellationToken)
     {
-        return await _persistenceService.GetLatestBackup(request.Job, cancellationToken);
+        return await _persistenceService.GetLatestBackupAsync(request.Job, cancellationToken);
     }
 }

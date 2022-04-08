@@ -18,7 +18,7 @@ public class PersistenceService : IPersistenceService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Backup?> GetLatestBackup(Job job, CancellationToken cancellationToken = default)
+    public async Task<Backup?> GetLatestBackupAsync(Job job, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -28,7 +28,7 @@ public class PersistenceService : IPersistenceService
                             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<BackupFolder?> GetBackupFolderEntityByPath(string relativePath, Backup backup, CancellationToken cancellationToken = default)
+    public async Task<BackupFolder?> GetBackupFolderByPathAsync(string relativePath, Backup backup, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -40,7 +40,7 @@ public class PersistenceService : IPersistenceService
                            folder => folder.RelativePath == relativePath);
     }
 
-    public async Task<List<BackupFolder>> GetAllFolderEntitiesForBackup(Backup backup, CancellationToken cancellationToken = default)
+    public async Task<List<BackupFolder>> GetAllFoldersForBackupAsync(Backup backup, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -51,7 +51,7 @@ public class PersistenceService : IPersistenceService
                             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<BackupFile>> GetAllFileEntitiesForBackup(Backup backup, CancellationToken cancellationToken = default)
+    public async Task<List<BackupFile>> GetAllFilesForBackupAsync(Backup backup, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -65,7 +65,7 @@ public class PersistenceService : IPersistenceService
                             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Backup> CreateBackupEntity(Backup backup, CancellationToken cancellationToken = default)
+    public async Task<Backup> CreateBackupAsync(Backup backup, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         context.Entry(backup).State = EntityState.Added;
@@ -74,7 +74,7 @@ public class PersistenceService : IPersistenceService
         return backup;
     }
 
-    public async Task<BackupFile> CreateBackupFile(BackupFile file, CancellationToken cancellationToken = default)
+    public async Task<BackupFile> CreateBackupFileAsync(BackupFile file, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         context.Entry(file).State = EntityState.Added;
@@ -83,7 +83,7 @@ public class PersistenceService : IPersistenceService
         return file;
     }
 
-    public async Task<BackupFolder> CreateBackupFolderEntity(BackupFolder folder, CancellationToken cancellationToken = default)
+    public async Task<BackupFolder> CreateBackupFolderAsync(BackupFolder folder, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         context.Entry(folder).State = EntityState.Added;
@@ -92,7 +92,7 @@ public class PersistenceService : IPersistenceService
         return folder;
     }
 
-    public async Task<List<BackupFile>> GetPreviousBackupFileEntities(Backup backup, DirectoryInfo source, CancellationToken cancellationToken = default)
+    public async Task<List<BackupFile>> GetPreviousBackupFilesAsync(Backup backup, DirectoryInfo source, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -112,7 +112,7 @@ public class PersistenceService : IPersistenceService
         return previousBackupFiles;
     }
 
-    public async Task DeleteBackupEntity(Backup backup, CancellationToken cancellationToken = default)
+    public async Task DeleteBackupAsync(Backup backup, CancellationToken cancellationToken = default)
     {
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
