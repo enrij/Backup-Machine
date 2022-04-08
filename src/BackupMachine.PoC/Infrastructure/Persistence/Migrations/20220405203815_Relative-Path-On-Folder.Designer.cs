@@ -3,6 +3,7 @@ using System;
 using BackupMachine.PoC.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BackupMachine.PoC.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BackupMachineContext))]
-    partial class BackupMachineContextModelSnapshot : ModelSnapshot
+    [Migration("20220405203815_Relative-Path-On-Folder")]
+    partial class RelativePathOnFolder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.3");
@@ -53,25 +55,13 @@ namespace BackupMachine.PoC.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("BackupId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Extension")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("Length")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Modified")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

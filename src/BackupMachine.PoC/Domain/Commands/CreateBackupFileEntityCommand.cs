@@ -1,4 +1,6 @@
-﻿using BackupMachine.PoC.Domain.Entities;
+﻿using BackupMachine.PoC.Domain.Aggregates;
+using BackupMachine.PoC.Domain.Entities;
+using BackupMachine.PoC.Domain.Enums;
 using BackupMachine.PoC.Domain.Queries;
 using BackupMachine.PoC.Infrastructure;
 
@@ -10,7 +12,7 @@ namespace BackupMachine.PoC.Domain.Commands;
 
 public class CreateBackupFileEntityCommand : IRequest<BackupFile>
 {
-    public CreateBackupFileEntityCommand(Backup backup, BackupFolder folder, FileInfo file)
+    public CreateBackupFileEntityCommand(Backup backup, BackupFolder folder, FileToBackup file)
     {
         Backup = backup;
         File = file;
@@ -19,7 +21,7 @@ public class CreateBackupFileEntityCommand : IRequest<BackupFile>
 
     public Backup Backup { get; init; }
     public BackupFolder Folder { get; init; }
-    public FileInfo File { get; init; }
+    public FileToBackup File { get; init; }
 }
 
 public class CreateBackupFileEntityHandler : IRequestHandler<CreateBackupFileEntityCommand, BackupFile>
@@ -35,19 +37,16 @@ public class CreateBackupFileEntityHandler : IRequestHandler<CreateBackupFileEnt
 
     public async Task<BackupFile> Handle(CreateBackupFileEntityCommand request, CancellationToken cancellationToken)
     {
-        var folder = await _mediatr.Send(new GetBackupFolderEntityByPathQuery(request.Folder.Destination.FullName, request.Backup.Id), cancellationToken);
-
-        if (folder is null)
-        {
-            throw new InvalidOperationException("Folder not found");
-        }
-        
         var file = new BackupFile
         {
             Backup = request.Backup,
-            Name = request.File.Name,
-            Extension = request.File.Extension,
-            BackupFolder = folder,
+            Name = request.File.FileInfo.Name,
+            Extension = request.File.FileInfo.Extension,
+            BackupFolder = request.Folder,
+            Status = request.File.Status,
+            Length = request.File.FileInfo.Length,
+            Modified = request.File.FileInfo.LastWriteTimeUtc,
+            Created = request.File.FileInfo.CreationTimeUtc
         };
 
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);

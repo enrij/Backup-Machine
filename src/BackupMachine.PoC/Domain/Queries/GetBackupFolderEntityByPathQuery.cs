@@ -9,14 +9,14 @@ namespace BackupMachine.PoC.Domain.Queries;
 
 public class GetBackupFolderEntityByPathQuery : IRequest<BackupFolder?>
 {
-    public GetBackupFolderEntityByPathQuery(string path, Guid backupId)
+    public GetBackupFolderEntityByPathQuery(string relativePath, Backup backup)
     {
-        Path = path;
-        BackupId = backupId;
+        RelativePath = relativePath;
+        Backup = backup;
     }
 
-    public Guid BackupId { get; set; }
-    public string Path { get; set; }
+    public Backup Backup { get; init; }
+    public string RelativePath { get; init; }
 }
 
 public class GetBackupFolderEntityByPathHandler : IRequestHandler<GetBackupFolderEntityByPathQuery, BackupFolder?>
@@ -33,9 +33,10 @@ public class GetBackupFolderEntityByPathHandler : IRequestHandler<GetBackupFolde
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         return context.Folders
-                      .Where(folder => folder.BackupId == request.BackupId)
+                      .Where(folder => folder.BackupId == request.Backup.Id)
+                      .Include(folder => folder.Files)
                       .AsEnumerable()
                       .FirstOrDefault(
-                          folder => folder.Destination.FullName == request.Path);
+                           folder => folder.RelativePath == request.RelativePath);
     }
 }

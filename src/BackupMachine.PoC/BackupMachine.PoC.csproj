@@ -31,7 +31,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="BackupMachine.db" />
+        <None Remove="BackupMachine.db" />
+        <None Remove="BackupMachine.db-shm" />
+        <None Remove="BackupMachine.db-wal" />
     </ItemGroup>
 
 </Project>
