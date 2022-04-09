@@ -1,38 +1,39 @@
-﻿using BackupMachine.Core.Services;
+﻿using BackupMachine.Core.Entities;
+using BackupMachine.Core.Services;
 using BackupMachine.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace BackupMachine.Console;
 
-public class BackupHostedService : IHostedService
+public class BackupHostedService : BackgroundService
 {
-    private readonly BackupsService _backupsService;
-    private readonly JobsService _jobsService;
+    private readonly IServiceProvider _provider;
 
-    public BackupHostedService(IDbContextFactory<BackupMachineContext> dbContextFactory, BackupsService backupsService, JobsService jobsService)
+    public BackupHostedService(IDbContextFactory<BackupMachineContext> dbContextFactory, IServiceProvider provider)
     {
-        _backupsService = backupsService;
-        _jobsService = jobsService;
+        _provider = provider;
 
         // TODO: Must find a different way to initialize database
         var context = dbContextFactory.CreateDbContext();
         context.Database.Migrate();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var jobsList = await _jobsService.GetJobs();
-
-        foreach (var job in jobsList)
+        while (stoppingToken.IsCancellationRequested == false)
         {
-            await _backupsService.ExecuteJobBackupAsync(job, cancellationToken);
+            using var scope = _provider.CreateScope();
+            var jobsService = scope.ServiceProvider.GetRequiredService<JobsService>();
+            var jobsList = await jobsService.GetJobsAsync(stoppingToken);
+            
+            foreach (var job in jobsList.TakeWhile(_=> stoppingToken.IsCancellationRequested == false))
+            {
+                var backupsService = scope.ServiceProvider.GetRequiredService<BackupsService>();
+                await backupsService.ExecuteJobBackupAsync(job,stoppingToken);
+            }
         }
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        await Task.CompletedTask;
     }
 }

@@ -59,8 +59,10 @@ public class BackupsService
     private async Task BackupFilesAsync(Backup backup, CancellationToken cancellationToken = default)
     {
         var filesInBackup = await _persistenceService.GetAllFilesForBackupAsync(backup, cancellationToken);
-        foreach (var file in filesInBackup)
+        foreach (var file in filesInBackup.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
+            Console.WriteLine($"Cancellation requested {cancellationToken.IsCancellationRequested}");
+            
             _logger.LogDebug("Processing file [{File}]", file.Name);
 
             switch (file.Status)
@@ -85,7 +87,7 @@ public class BackupsService
     private async Task CreateDestinationBackupFolderStructureAsync(Backup backup, CancellationToken cancellationToken = default)
     {
         var foldersInBackup = await _persistenceService.GetAllFoldersForBackupAsync(backup, cancellationToken);
-        foreach (var folder in foldersInBackup)
+        foreach (var folder in foldersInBackup.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
             _fileSystemService.CreateDirectory(Utilities.GetBackupFolderDestinationPath(folder));
         }

@@ -3,7 +3,7 @@
 ```shell
 cls
 $migration = Read-Host -Prompt 'New migration name'
-dotnet ef migrations add $migration --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console --output-dir Infrastructure\Persistence\Migrations
+dotnet ef migrations add $migration --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console --output-dir ~~~~Persistence\Migrations
 dotnet ef database update --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console
 
 ```
@@ -39,7 +39,7 @@ cls
 $migration = Read-Host -Prompt 'New migration name'
 dotnet ef database drop --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console --force
 dotnet ef migrations remove --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console
-dotnet ef migrations add $migration --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console --output-dir Infrastructure\Persistence\Migrations
+dotnet ef migrations add $migration --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console --output-dir Persistence\Migrations
 dotnet ef database update --project .\src\BackupMachine.Infrastructure --startup-project .\src\BackupMachine.Console
 
 ```

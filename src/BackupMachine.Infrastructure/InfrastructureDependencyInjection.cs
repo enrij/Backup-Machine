@@ -29,7 +29,7 @@ public static class InfrastructureDependencyInjection
                                 optionsBuilder => { optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery); }
                             );
                         })
-                       .AddSingleton<IPersistenceService, PersistenceService>()
-                       .AddSingleton<IFileSystemService, FileSystemService>();
+                       .AddScoped<IPersistenceService, PersistenceService>()
+                       .AddScoped<IFileSystemService, FileSystemService>();
     }
 }

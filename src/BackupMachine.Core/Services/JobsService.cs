@@ -12,8 +12,8 @@ public class JobsService
         _persistenceService = persistenceService;
     }
 
-    public async Task<List<Job>> GetJobs()
+    public async Task<List<Job>> GetJobsAsync(CancellationToken cancellationToken = default)
     {
-        return await _persistenceService.GetJobsAsync();
+        return await _persistenceService.GetJobsAsync(cancellationToken);
     }
 }
