@@ -303,7 +303,7 @@ public class BackupsService
 
             await _persistenceService.DeleteBackupAsync(backup, cancellationToken);
 
-            _fileSystemService.DeleteFolder(Utilities.GetBackupDestinationRootFolderPath(backup));
+            _fileSystemService.DeleteFolderAndContent(Utilities.GetBackupDestinationRootFolderPath(backup));
         }
     }
 }

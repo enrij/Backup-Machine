@@ -9,7 +9,7 @@ public class FileSystemService : IFileSystemService
         file.CopyTo(destination.FullName, overwrite);
     }
 
-    public void DeleteFolder(DirectoryInfo directory, bool recursive = false)
+    public void DeleteFolderAndContent(DirectoryInfo directory, bool recursive = false)
     {
         if (directory.Exists == false)
         {
@@ -25,11 +25,14 @@ public class FileSystemService : IFileSystemService
         {
             foreach (var subfolder in directory.GetDirectories())
             {
-                DeleteFolder(subfolder, recursive);
+                DeleteFolderAndContent(subfolder, recursive);
             }
         }
-
-        directory.Delete();
+        
+        if (directory.GetFileSystemInfos().Length == 0)
+        {
+            directory.Delete();
+        }
     }
 
     public void CreateDirectory(DirectoryInfo directory)
