@@ -28,7 +28,7 @@ public class FileSystemService : IFileSystemService
                 DeleteFolderAndContent(subfolder, recursive);
             }
         }
-        
+
         if (directory.GetFileSystemInfos().Length == 0)
         {
             directory.Delete();

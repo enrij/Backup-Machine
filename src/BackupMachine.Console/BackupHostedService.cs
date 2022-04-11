@@ -1,5 +1,4 @@
-﻿using BackupMachine.Core.Entities;
-using BackupMachine.Core.Services;
+﻿using BackupMachine.Core.Services;
 using BackupMachine.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -28,11 +27,11 @@ public class BackupHostedService : BackgroundService
             using var scope = _provider.CreateScope();
             var jobsService = scope.ServiceProvider.GetRequiredService<JobsService>();
             var jobsList = await jobsService.GetJobsAsync(stoppingToken);
-            
-            foreach (var job in jobsList.TakeWhile(_=> stoppingToken.IsCancellationRequested == false))
+
+            foreach (var job in jobsList.TakeWhile(_ => stoppingToken.IsCancellationRequested == false))
             {
                 var backupsService = scope.ServiceProvider.GetRequiredService<BackupsService>();
-                await backupsService.ExecuteJobBackupAsync(job,stoppingToken);
+                await backupsService.ExecuteJobBackupAsync(job, stoppingToken);
             }
         }
     }

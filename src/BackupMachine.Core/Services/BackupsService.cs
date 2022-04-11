@@ -61,8 +61,6 @@ public class BackupsService
         var filesInBackup = await _persistenceService.GetAllFilesForBackupAsync(backup, cancellationToken);
         foreach (var file in filesInBackup.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
-            Console.WriteLine($"Cancellation requested {cancellationToken.IsCancellationRequested}");
-            
             _logger.LogDebug("Processing file [{File}]", file.Name);
 
             switch (file.Status)
@@ -89,7 +87,8 @@ public class BackupsService
         var foldersInBackup = await _persistenceService.GetAllFoldersForBackupAsync(backup, cancellationToken);
         foreach (var folder in foldersInBackup.TakeWhile(_ => cancellationToken.IsCancellationRequested == false))
         {
-            _fileSystemService.CreateDirectory(Utilities.GetBackupFolderDestinationPath(folder));
+            var directory = Utilities.GetBackupFolderDestinationPath(folder);
+            _fileSystemService.CreateDirectory(directory);
         }
     }
 
@@ -286,16 +285,28 @@ public class BackupsService
         {
             var source = new DirectoryInfo(job.Source);
 
+            _logger.LogInformation("Creating database entries");
             // Stage 1
             await CreateDatabaseDataFromFolderAsync(source, backup, cancellationToken);
 
+            _logger.LogInformation("Creating folders structure at destination");
             // Stage 2
             await CreateDestinationBackupFolderStructureAsync(backup, cancellationToken);
 
+            _logger.LogInformation("Backing up files");
             // Stage 3
             await BackupFilesAsync(backup, cancellationToken);
 
             _logger.LogDebug("Job [{Name}] completed", job.Name);
+        }
+        catch (TaskCanceledException)
+        {
+            _logger.LogCritical("Job [{Name}] canceled. Cleanup partial database data", job.Name);
+
+            // Cancellation token was canceled. Not need to pass it to delete method
+            await _persistenceService.DeleteBackupAsync(backup);
+
+            _fileSystemService.DeleteFolderAndContent(Utilities.GetBackupDestinationRootFolderPath(backup));
         }
         catch (Exception e)
         {
